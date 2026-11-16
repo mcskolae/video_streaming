@@ -37,8 +37,16 @@ USER app
 # --- Cible production : code embarqué, utilisateur non root ---
 FROM base AS prod
 RUN groupadd -g 1000 app && useradd -u 1000 -g 1000 -m app
+COPY docker/php/prod.ini /usr/local/etc/php/conf.d/zz-prod.ini
 COPY --chown=app:app --from=vendor /app /var/www/html
 COPY --chown=app:app --from=assets /app/public/build /var/www/html/public/build
 RUN mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cache \
     && chown -R app:app storage bootstrap/cache
 USER app
+RUN php artisan package:discover --ansi
+
+# --- Cible web : Nginx avec les fichiers publics embarqués (production) ---
+FROM nginx:1.29-alpine AS web
+COPY --from=vendor /app/public /var/www/html/public
+COPY --from=assets /app/public/build /var/www/html/public/build
+COPY docker/nginx/prod.conf.template /etc/nginx/templates/default.conf.template

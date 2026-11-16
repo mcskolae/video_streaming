@@ -1,0 +1,17 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 6
+    paths:
+        - app
+        - src
+        - tests
+    excludePaths:
+        - tests/Pest.php
+    ignoreErrors:
+        # Les closures Pest sont liées à TestCase à l'exécution, PHPStan ne le voit pas.
+        -
+            identifier: method.notFound
+            path: tests/*
+            message: '#Pest\\PendingCalls\\TestCall::#'

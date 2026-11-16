@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: homeflix_test
+          POSTGRES_USER: homeflix
+          POSTGRES_PASSWORD: homeflix_ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U homeflix -d homeflix_test"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_DATABASE: homeflix_test
+      DB_USERNAME: homeflix
+      DB_PASSWORD: homeflix_ci
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.5"
+          extensions: pdo_pgsql, intl, zip, pcntl, bcmath, redis
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate
+      - run: vendor/bin/pint --test
+      - run: vendor/bin/phpstan analyse --memory-limit=512M --no-progress
+      - run: vendor/bin/pest

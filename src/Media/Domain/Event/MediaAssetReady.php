@@ -18,6 +18,17 @@ final readonly class MediaAssetReady implements DomainEvent
         private DateTimeImmutable $occurredOn,
     ) {}
 
+    /** « title » (film) ou « episode » : lisible par les autres contextes sans importer les types de Media. */
+    public function targetKind(): string
+    {
+        return $this->target->kind->value;
+    }
+
+    public function targetId(): string
+    {
+        return $this->target->id->value;
+    }
+
     public function occurredOn(): DateTimeImmutable
     {
         return $this->occurredOn;

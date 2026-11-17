@@ -97,10 +97,15 @@ final class DatabasePublicCatalogReader implements PublicCatalogReader
 
     public function bySlug(string $slug): ?PublicTitleDetails
     {
+        // Le flux n'est exposé que si le média est prêt (jointure sur le statut), jamais pendant l'envoi ou la conversion.
         $title = $this->published()
+            ->leftJoin('media_assets', function ($join): void {
+                $join->on('media_assets.title_id', '=', 'titles.id')->where('media_assets.status', '=', 'ready');
+            })
             ->where('titles.slug', $slug)
             ->first(['titles.id', 'titles.slug', 'titles.type', 'titles.title', 'titles.original_title', 'titles.overview',
-                'titles.release_year', 'titles.runtime_minutes', 'titles.poster_path', 'titles.backdrop_path']);
+                'titles.release_year', 'titles.runtime_minutes', 'titles.poster_path', 'titles.backdrop_path',
+                'media_assets.hls_master_path as stream_path']);
 
         if ($title === null) {
             return null;
@@ -131,6 +136,7 @@ final class DatabasePublicCatalogReader implements PublicCatalogReader
             $title->backdrop_path === null ? null : (string) $title->backdrop_path,
             $genres,
             $type === TitleType::Series ? $this->seasons($titleId) : [],
+            $this->streamPath($title->stream_path),
         );
     }
 
@@ -182,6 +188,9 @@ final class DatabasePublicCatalogReader implements PublicCatalogReader
     {
         $rows = DB::table('seasons')
             ->leftJoin('episodes', 'episodes.season_id', '=', 'seasons.id')
+            ->leftJoin('media_assets', function ($join): void {
+                $join->on('media_assets.episode_id', '=', 'episodes.id')->where('media_assets.status', '=', 'ready');
+            })
             ->where('seasons.title_id', $titleId)
             ->orderBy('seasons.number')
             ->orderBy('episodes.number')
@@ -189,6 +198,7 @@ final class DatabasePublicCatalogReader implements PublicCatalogReader
                 'seasons.id as season_id', 'seasons.number as season_number', 'seasons.name as season_name', 'seasons.overview as season_overview',
                 'episodes.number as episode_number', 'episodes.name as episode_name', 'episodes.overview as episode_overview',
                 'episodes.runtime_minutes as episode_runtime', 'episodes.still_path as episode_still', 'episodes.is_playable as episode_playable',
+                'media_assets.hls_master_path as episode_stream',
             ]);
 
         /** @var array<string, array{season: stdClass, episodes: list<PublicEpisode>}> $grouped */
@@ -205,6 +215,7 @@ final class DatabasePublicCatalogReader implements PublicCatalogReader
                     $row->episode_runtime === null ? null : (int) $row->episode_runtime,
                     $row->episode_still === null ? null : (string) $row->episode_still,
                     (bool) $row->episode_playable,
+                    $this->streamPath($row->episode_stream),
                 );
             }
         }
@@ -218,6 +229,15 @@ final class DatabasePublicCatalogReader implements PublicCatalogReader
             ),
             $grouped,
         ));
+    }
+
+    /**
+     * N'accepte que le format exact d'un chemin de flux produit par le transcodage : un autre contenu en base
+     * ne devient jamais une URL de lecture.
+     */
+    private function streamPath(mixed $path): ?string
+    {
+        return is_string($path) && preg_match('#^hls/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/master\.m3u8$#', $path) === 1 ? $path : null;
     }
 
     /** Le terme tel qu'il serait écrit dans un slug ("Amélie" donne "amelie"), ou null s'il n'a ni lettre ni chiffre. */

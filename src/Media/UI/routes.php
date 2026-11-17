@@ -11,6 +11,7 @@ Route::middleware(['web', 'auth', 'admin'])
     ->name('admin.media.')
     ->controller(MediaUploadController::class)
     ->group(function () {
+        Route::get('/', 'index')->name('index');
         Route::get('{kind}/{target}', 'show')->where('kind', 'title|episode')->whereUuid('target')->name('show');
 
         // Un envoi fait des centaines de requêtes (une par morceau de 5 Mo) : la limite est large.

@@ -22,6 +22,9 @@
                         <x-nav-link :href="route('admin.titles.index')" :active="request()->routeIs('admin.titles.*')">
                             {{ __('Catalogue') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('admin.media.index')" :active="request()->routeIs('admin.media.*')">
+                            {{ __('Vidéos') }}
+                        </x-nav-link>
                     @endcan
                 </div>
             </div>
@@ -84,6 +87,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.titles.index')" :active="request()->routeIs('admin.titles.*')">
                     {{ __('Catalogue') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.media.index')" :active="request()->routeIs('admin.media.*')">
+                    {{ __('Vidéos') }}
                 </x-responsive-nav-link>
             @endcan
         </div>

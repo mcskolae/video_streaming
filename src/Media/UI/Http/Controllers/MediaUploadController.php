@@ -29,6 +29,11 @@ use InvalidArgumentException;
  */
 final class MediaUploadController
 {
+    public function index(): View
+    {
+        return view('media::admin.index');
+    }
+
     public function show(string $kind, string $target, GetMediaOverviewHandler $handler): View
     {
         $overview = $this->overview($kind, $target, $handler) ?? abort(404);

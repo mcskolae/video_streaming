@@ -1,0 +1,96 @@
+# Production. Variables non secrètes dans .env.prod, secrets dans ./secrets/ (voir docs/DEPLOY.md).
+# Usage : docker compose -f compose.prod.yml --env-file .env.prod up -d --build
+name: homeflix
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: web
+    restart: unless-stopped
+    # Recharge la configuration régulièrement pour prendre en compte un certificat renouvelé.
+    command: ["/bin/sh", "-c", "while :; do sleep 6h; nginx -s reload; done & exec nginx -g 'daemon off;'"]
+    environment:
+      DOMAIN: ${DOMAIN:?DOMAIN manquant dans .env.prod}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - certs:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
+      - ${MEDIA_PATH:-/srv/media}:/srv/media:ro
+    depends_on:
+      - app
+    networks: [edge, internal]
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: prod
+    restart: unless-stopped
+    env_file: .env.prod
+    secrets: [app_key, db_password, tmdb_api_key]
+    volumes:
+      - app_storage:/var/www/html/storage
+      - ${MEDIA_PATH:-/srv/media}:/srv/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    # egress : sortie vers Internet, nécessaire pour l'API TMDB.
+    networks: [internal, egress]
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: homeflix
+      POSTGRES_USER: homeflix
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U homeflix -d homeflix"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks: [internal]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    networks: [internal]
+
+  certbot:
+    image: certbot/certbot:latest
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-c", "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done"]
+    volumes:
+      - certs:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    networks: [edge]
+
+networks:
+  edge:
+  egress:
+  internal:
+    internal: true
+
+volumes:
+  pgdata:
+  app_storage:
+  certs:
+  certbot_www:
+
+secrets:
+  app_key:
+    file: ./secrets/app_key
+  db_password:
+    file: ./secrets/db_password
+  tmdb_api_key:
+    file: ./secrets/tmdb_api_key

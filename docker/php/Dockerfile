@@ -50,3 +50,4 @@ FROM nginx:1.29-alpine AS web
 COPY --from=vendor /app/public /var/www/html/public
 COPY --from=assets /app/public/build /var/www/html/public/build
 COPY docker/nginx/prod.conf.template /etc/nginx/templates/default.conf.template
+COPY --chmod=755 docker/nginx/90-reload-certs.sh /docker-entrypoint.d/90-reload-certs.sh

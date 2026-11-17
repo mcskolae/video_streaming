@@ -9,8 +9,6 @@ services:
       dockerfile: docker/php/Dockerfile
       target: web
     restart: unless-stopped
-    # Recharge la configuration régulièrement pour prendre en compte un certificat renouvelé.
-    command: ["/bin/sh", "-c", "while :; do sleep 6h; nginx -s reload; done & exec nginx -g 'daemon off;'"]
     environment:
       DOMAIN: ${DOMAIN:?DOMAIN manquant dans .env.prod}
     ports:

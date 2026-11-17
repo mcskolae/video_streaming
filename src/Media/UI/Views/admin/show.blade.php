@@ -55,9 +55,9 @@
                           data-kind="{{ $overview->kind->value }}"
                           data-target="{{ $overview->targetId }}"
                           data-start-url="{{ route('admin.media.uploads.start') }}"
-                          data-status-url="{{ route('admin.media.uploads.status', '00000000-0000-7000-8000-000000000000') }}"
-                          data-chunk-url="{{ route('admin.media.uploads.chunk', ['upload' => '00000000-0000-7000-8000-000000000000', 'index' => 0]) }}"
-                          data-complete-url="{{ route('admin.media.uploads.complete', '00000000-0000-7000-8000-000000000000') }}">
+                          data-status-url="{{ str_replace('00000000-0000-7000-8000-000000000000', '__ID__', route('admin.media.uploads.status', '00000000-0000-7000-8000-000000000000')) }}"
+                          data-chunk-url="{{ str_replace(['00000000-0000-7000-8000-000000000000', '/chunks/0'], ['__ID__', '/chunks/__INDEX__'], route('admin.media.uploads.chunk', ['upload' => '00000000-0000-7000-8000-000000000000', 'index' => 0])) }}"
+                          data-complete-url="{{ str_replace('00000000-0000-7000-8000-000000000000', '__ID__', route('admin.media.uploads.complete', '00000000-0000-7000-8000-000000000000')) }}">
                         <label for="video-file" class="mb-2 block text-sm font-medium text-gray-700">
                             {{ __('Fichier vidéo (mp4, m4v, mov, mkv, webm, avi)') }}
                         </label>

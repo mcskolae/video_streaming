@@ -26,7 +26,7 @@ rollback() {
     if [ -n "$previous" ] && [ "$previous" != "$new" ]; then
         echo "Retour au code ${previous}. Les migrations déjà appliquées ne sont pas annulées." >&2
         git checkout --quiet --detach "$previous"
-        $compose up -d --build --remove-orphans || echo "Le retour arrière a aussi échoué : intervention manuelle nécessaire." >&2
+        { $compose up -d --build --remove-orphans && $compose restart nginx; } || echo "Le retour arrière a aussi échoué : intervention manuelle nécessaire." >&2
     else
         echo "Aucun déploiement précédent connu : pas de retour arrière." >&2
     fi

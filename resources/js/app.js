@@ -1,7 +1,2 @@
-
-
-import Alpine from 'alpinejs';
-
-window.Alpine = Alpine;
-
-Alpine.start();
+// Alpine.js est fourni par Livewire (@livewireScripts, présent dans tous les layouts) :
+// le démarrer ici aussi le chargerait deux fois.

@@ -150,21 +150,26 @@ titles
   id uuid PK, type (enum movie|series), tmdb_id int, slug UNIQUE,
   title, original_title, overview, release_year smallint, runtime_minutes smallint NULL,
   poster_path, backdrop_path,
-  status (enum draft|published) DEFAULT draft, published_at NULL, timestamps
+  status (enum draft|published) DEFAULT draft, published_at NULL,
+  is_playable bool DEFAULT false   -- film : média prêt ; toujours faux pour une série
+  timestamps
   UNIQUE (type, tmdb_id)
   INDEX (status, type)  +  index GIN pg_trgm sur title pour la recherche
+  CHECK : année entre 1870 et 2100, durée entre 1 et 10000 minutes,
+          (status = 'published') = (published_at IS NOT NULL),
+          un film publié est lisible, une série n'a jamais is_playable = true
 
 title_genre
   title_id FK, genre_id FK, PK (title_id, genre_id)
 
 seasons
   id uuid PK, title_id FK ON DELETE CASCADE, number smallint, name, overview
-  UNIQUE (title_id, number)
+  UNIQUE (title_id, number)  +  CHECK (number BETWEEN 0 AND 999)   -- 0 = épisodes spéciaux
 
 episodes
   id uuid PK, season_id FK ON DELETE CASCADE, number smallint, name, overview,
-  runtime_minutes smallint NULL, still_path
-  UNIQUE (season_id, number)
+  runtime_minutes smallint NULL, still_path, is_playable bool DEFAULT false
+  UNIQUE (season_id, number)  +  CHECK (number >= 1)
 
 media_assets
   id uuid PK,

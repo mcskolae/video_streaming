@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>HomeFlix - Document métier</title>
+<style>
+  @page { size: A4; margin: 16mm 18mm 16mm 18mm; }
+  body { font-family: "DejaVu Sans", "Liberation Sans", Arial, sans-serif; font-size: 9.6pt; line-height: 1.38; color: #1c1c1c; }
+  h1 { font-size: 18pt; margin: 0 0 1mm; color: #14213d; }
+  .sub { color: #555; font-size: 9.5pt; margin: 0 0 4mm; border-bottom: 1.5px solid #14213d; padding-bottom: 2.5mm; }
+  h2 { font-size: 12pt; color: #14213d; margin: 4.5mm 0 1.5mm; }
+  p { margin: 0 0 2mm; text-align: justify; }
+  ul { margin: 0 0 2mm 4mm; padding-left: 3mm; }
+  li { margin-bottom: 0.8mm; }
+  table { width: 100%; border-collapse: collapse; margin: 1.5mm 0 2.5mm; font-size: 9pt; }
+  th, td { border: 1px solid #b9bfcc; padding: 1.4mm 2mm; vertical-align: top; text-align: left; }
+  th { background: #e8ecf5; }
+  .box { border-left: 3px solid #14213d; background: #f3f5fa; padding: 1.8mm 3mm; margin: 1.5mm 0 2.5mm; }
+</style>
+</head>
+<body>
+
+<h1>HomeFlix</h1>
+<p class="sub">Plateforme de streaming vidéo personnelle pour homelab &mdash; Document métier &mdash; Projet annuel, 3<sup>e</sup> année Ingénierie du Web (ESGI)</p>
+
+<h2>1. Contexte</h2>
+<p>Un amateur de cinéma accumule des films et des séries sur des disques durs, des clés USB ou un ordinateur de bureau. Cette vidéothèque personnelle est difficile à exploiter : elle n'est lisible que sur la machine qui la stocke ou sur le réseau local, les fichiers n'ont ni affiche, ni synopsis, ni classement, et rien ne mémorise où l'on s'est arrêté. Les plateformes commerciales offrent ce confort, mais elles imposent un abonnement et un catalogue que l'on ne choisit pas.</p>
+<p>Le <em>homelab</em> (serveur personnel hébergé chez soi ou chez un fournisseur cloud) permet de reprendre la maîtrise de ses données et de ses services. Le projet s'inscrit dans cette démarche : un site de streaming que l'on héberge soi-même, sur un serveur gratuit (offre Always Free d'Oracle Cloud, processeur ARM), pour une vidéothèque choisie par son propriétaire. L'usage est personnel et pédagogique ; les vidéos de démonstration sont des œuvres libres de droits.</p>
+
+<h2>2. Problème</h2>
+<div class="box"><strong>Comment donner accès, depuis n'importe quel appareil connecté, à une vidéothèque personnelle avec le confort d'une plateforme commerciale (catalogue illustré, lecture fluide, reprise de lecture), sans abonnement et sans en perdre la maîtrise ?</strong></div>
+<p>Des logiciels existants répondent en partie à ce besoin (Jellyfin, Plex), mais ils se présentent comme des applications à installer et à administrer telles quelles. Le projet pose une question différente : concevoir et réaliser soi-même la plateforme, pour en maîtriser le fonctionnement, le modèle de données et la sécurité. Trois contraintes structurent le problème :</p>
+<ul>
+  <li><strong>Hétérogénéité des appareils et des débits</strong> : un fichier unique ne convient ni à un téléphone sur réseau mobile, ni à un téléviseur. La lecture doit s'adapter à la connexion.</li>
+  <li><strong>Ressources limitées</strong> : le serveur gratuit n'a pas d'encodage matériel. La conversion des vidéos est lente et doit être traitée en arrière-plan, sans bloquer le site.</li>
+  <li><strong>Maîtrise des accès</strong> : tout visiteur doit pouvoir regarder sans formalité, tandis que l'alimentation du catalogue reste réservée au propriétaire.</li>
+</ul>
+
+<h2>3. Solution proposée</h2>
+<p>HomeFlix est un site web en HTTPS, conteneurisé, qui propose un catalogue de films et de séries et les diffuse en streaming adaptatif (HLS). Le propriétaire alimente le catalogue ; les spectateurs le parcourent et regardent.</p>
+<table>
+  <tr><th style="width:27%">Fonction</th><th>Apport pour l'utilisateur</th></tr>
+  <tr><td>Catalogue enrichi</td><td>Le propriétaire recherche un titre dans la base TMDB et l'importe : affiche, synopsis, genres, saisons et épisodes sont renseignés sans saisie manuelle. Il publie ou retire un titre à volonté.</td></tr>
+  <tr><td>Envoi de vidéos</td><td>Envoi d'un fichier volumineux par le navigateur, découpé en morceaux avec reprise en cas de coupure. Le fichier est contrôlé avant d'être accepté.</td></tr>
+  <tr><td>Transcodage HLS</td><td>Chaque vidéo est convertie en arrière-plan en plusieurs qualités (720p, puis 1080p si la source le permet). Le propriétaire suit l'avancement et peut relancer un échec.</td></tr>
+  <tr><td>Lecture adaptative</td><td>Le lecteur choisit la qualité selon le débit de l'appareil et permet de se déplacer dans la vidéo. Aucun compte n'est nécessaire pour regarder.</td></tr>
+  <tr><td>Espace personnel</td><td>Avec un compte, l'utilisateur garde ses favoris, reprend la lecture là où il s'est arrêté et retrouve ses titres « en cours » (par épisode pour les séries).</td></tr>
+  <tr><td>Recherche</td><td>Recherche par titre, tolérante aux fautes de frappe, et navigation par genre.</td></tr>
+</table>
+<p><strong>Ce que la solution a d'original.</strong> Elle est conçue pour fonctionner sur un petit serveur gratuit : le transcodage est séquentiel et asynchrone, les flux HLS sont servis directement par le serveur web pour décharger l'application, et les métadonnées proviennent d'un service tiers plutôt que d'une saisie manuelle. Sur le plan technique, l'application suit une architecture en couches (conception pilotée par le domaine) qui isole les règles métier du framework, ce qui les rend testables sans base de données.</p>
+<p><strong>Choix assumés.</strong> Sont hors périmètre : notes, playlists, commentaires, sous-titres, plusieurs pistes audio et temps réel. Chaque compte n'a qu'un seul profil. Le site n'héberge pas de contenu protégé par le droit d'auteur.</p>
+
+<h2>4. Acteurs concernés</h2>
+<table>
+  <tr><th style="width:20%">Acteur</th><th style="width:20%">Type</th><th>Besoins et actions</th></tr>
+  <tr><td>Visiteur</td><td>Principal, sans compte</td><td>Parcourir le catalogue, rechercher, ouvrir une fiche et regarder un titre publié. Peut s'inscrire pour accéder à l'espace personnel.</td></tr>
+  <tr><td>Utilisateur</td><td>Principal, connecté</td><td>Tout ce que fait le visiteur, plus : gérer ses favoris, reprendre une lecture, consulter ses titres en cours.</td></tr>
+  <tr><td>Administrateur</td><td>Principal, propriétaire</td><td>Importer les métadonnées, envoyer les vidéos, suivre et relancer les transcodages, publier ou dépublier un titre, gérer les comptes (rôles, suspension).</td></tr>
+  <tr><td>Service TMDB</td><td>Secondaire, externe</td><td>Fournit les métadonnées des films et des séries à l'import. Son attribution est affichée sur le site.</td></tr>
+  <tr><td>Transcodeur</td><td>Secondaire, interne</td><td>Convertit les vidéos envoyées en flux HLS, en tâche de fond, et signale la fin ou l'échec.</td></tr>
+</table>
+<p><strong>Parcours type.</strong> L'administrateur importe un film depuis TMDB, envoie le fichier vidéo, attend la fin du transcodage puis publie le titre. Un visiteur trouve le film par la recherche et le regarde. S'il crée un compte, il l'ajoute à ses favoris et, plus tard, reprend la lecture à l'endroit où il l'avait quittée.</p>
+
+</body>
+</html>

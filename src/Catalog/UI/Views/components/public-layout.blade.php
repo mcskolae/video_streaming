@@ -53,6 +53,7 @@
                         @can('administer')
                             <a href="{{ route('admin.titles.index') }}" class="text-gray-700 hover:text-indigo-700">{{ __('Administration') }}</a>
                         @endcan
+                        <a href="{{ route('favorites.index') }}" class="text-gray-700 hover:text-indigo-700">{{ __('Mes favoris') }}</a>
                         <a href="{{ route('dashboard') }}" class="text-gray-700 hover:text-indigo-700">{{ __('Mon compte') }}</a>
                     @else
                         <a href="{{ route('login') }}" class="text-gray-700 hover:text-indigo-700">{{ __('Connexion') }}</a>
@@ -85,6 +86,7 @@
                     @can('administer')
                         <a href="{{ route('admin.titles.index') }}" class="block rounded px-2 py-2 hover:bg-gray-100">{{ __('Administration') }}</a>
                     @endcan
+                    <a href="{{ route('favorites.index') }}" class="block rounded px-2 py-2 hover:bg-gray-100">{{ __('Mes favoris') }}</a>
                     <a href="{{ route('dashboard') }}" class="block rounded px-2 py-2 hover:bg-gray-100">{{ __('Mon compte') }}</a>
                 @else
                     <a href="{{ route('login') }}" class="block rounded px-2 py-2 hover:bg-gray-100">{{ __('Connexion') }}</a>

@@ -36,6 +36,12 @@
                     @endif
                 </header>
 
+                @auth
+                    <div class="mt-4">
+                        <livewire:library.favorite-button :title-id="$title->id" :key="'favorite-'.$title->id" />
+                    </div>
+                @endauth
+
                 <dl class="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600">
                     <div><dt class="inline font-medium">{{ __('Type') }} :</dt> <dd class="inline">{{ $isSeries ? __('Série') : __('Film') }}</dd></div>
                     @if ($minutes)

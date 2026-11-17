@@ -125,6 +125,7 @@ final class DatabasePublicCatalogReader implements PublicCatalogReader
         $type = TitleType::from((string) $title->type);
 
         return new PublicTitleDetails(
+            $titleId,
             (string) $title->slug,
             $type,
             (string) $title->title,

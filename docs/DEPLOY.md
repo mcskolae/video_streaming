@@ -45,7 +45,14 @@ Crée un sous-domaine gratuit (par exemple sur DuckDNS) qui pointe vers l'IP pub
 
 ## 4. Clé TMDB [toi]
 
-Crée un compte sur themoviedb.org, puis demande une clé d'API dans *Paramètres, API*. Tu auras besoin de la clé « API Key » (v3).
+Crée un compte sur themoviedb.org, puis demande une clé d'API dans *Paramètres, API*. Deux valeurs sont acceptées, au choix :
+
+- le **jeton d'accès en lecture** (« API Read Access Token », il contient des points) : à préférer, car il est envoyé dans un en-tête et n'apparaît jamais dans une URL ;
+- la **clé d'API v3** (« API Key », 32 caractères hexadécimaux), envoyée en paramètre `api_key`.
+
+L'application reconnaît le type tout seule. La valeur va dans `secrets/tmdb_api_key` (saisie masquée par `scripts/generate-secrets.sh`) et n'est lue que par `secret('TMDB_API_KEY')`.
+
+Pour changer la clé sur la VM : `printf '%s' "<valeur>" > ~/video_streaming/secrets/tmdb_api_key`, puis redémarrer l'application (`docker compose -f compose.prod.yml --env-file .env.prod up -d --force-recreate app`).
 
 ## 5. GitHub [toi]
 

@@ -18,7 +18,7 @@ if [ ! -f secrets/db_password ]; then
 fi
 
 if [ ! -f secrets/tmdb_api_key ]; then
-  read -r -s -p "Clé API TMDB (v3) : " tmdb
+  read -r -s -p "Jeton d'accès en lecture TMDB (ou clé API v3) : " tmdb
   echo
   printf '%s' "$tmdb" > secrets/tmdb_api_key
   echo "secrets/tmdb_api_key créé"

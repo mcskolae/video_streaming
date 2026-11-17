@@ -41,6 +41,26 @@ services:
     # egress : sortie vers Internet, nécessaire pour l'API TMDB.
     networks: [internal, egress]
 
+  # Transcodage HLS en arrière-plan. Un seul worker : le serveur n'a pas d'encodage matériel.
+  # Il redémarre toutes les heures (--max-time) pour libérer la mémoire.
+  worker:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: prod
+    restart: unless-stopped
+    command: ["php", "artisan", "queue:work", "--queue=transcoding,default", "--tries=1", "--timeout=14400", "--sleep=3", "--max-time=3600"]
+    env_file: .env.prod
+    secrets: [app_key, db_password, tmdb_api_key]
+    volumes:
+      - ${MEDIA_PATH:-/srv/media}:/srv/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks: [internal]
+
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped

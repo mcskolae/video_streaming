@@ -3,8 +3,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-// Le module importe hls.js ; en Node il se charge sans toucher au DOM tant qu'on ne l'instancie pas.
-const { attach, isStreamUrl } = await import('../../resources/js/player.js');
+import { attach, isStreamUrl } from '../../resources/js/player-core.js';
 
 const GOOD = '/hls/01a1eaab-f114-7ec0-be6f-343634818f76/master.m3u8';
 

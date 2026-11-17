@@ -7,6 +7,7 @@ namespace HomeFlix\Catalog\Domain\Model;
 use DateTimeImmutable;
 use HomeFlix\Catalog\Domain\Event\TitlePublished;
 use HomeFlix\Catalog\Domain\Event\TitleUnpublished;
+use HomeFlix\Catalog\Domain\Exception\EpisodeNotFound;
 use HomeFlix\Catalog\Domain\Exception\SeasonAlreadyExists;
 use HomeFlix\Catalog\Domain\Exception\SeasonNotFound;
 use HomeFlix\Catalog\Domain\Exception\TitleCannotBePublished;
@@ -212,6 +213,24 @@ final class Title extends AggregateRoot
     {
         $this->assertSeries();
         $this->season($seasonNumber)->episode($episodeNumber)->markPlayable();
+    }
+
+    /** Le média d'un épisode est prêt, l'épisode étant désigné par son identifiant. */
+    public function markEpisodePlayableById(EpisodeId $episodeId): void
+    {
+        $this->assertSeries();
+
+        foreach ($this->seasons as $season) {
+            foreach ($season->episodes() as $episode) {
+                if ($episode->id->equals($episodeId)) {
+                    $episode->markPlayable();
+
+                    return;
+                }
+            }
+        }
+
+        throw EpisodeNotFound::withId($episodeId->value);
     }
 
     /** Le média d'un épisode n'est plus prêt. Une série publiée sans épisode lisible repasse en brouillon. */

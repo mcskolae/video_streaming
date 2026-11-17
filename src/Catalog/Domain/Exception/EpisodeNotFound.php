@@ -12,4 +12,9 @@ final class EpisodeNotFound extends DomainException
     {
         return new self(sprintf('Episode %d does not exist in season %d.', $episode, $season));
     }
+
+    public static function withId(string $id): self
+    {
+        return new self(sprintf('Episode %s does not exist.', $id));
+    }
 }

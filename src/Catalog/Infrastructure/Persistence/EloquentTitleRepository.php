@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace HomeFlix\Catalog\Infrastructure\Persistence;
 
+use HomeFlix\Catalog\Domain\Model\EpisodeId;
 use HomeFlix\Catalog\Domain\Model\Genre;
 use HomeFlix\Catalog\Domain\Model\Slug;
 use HomeFlix\Catalog\Domain\Model\Title;
@@ -51,6 +52,11 @@ final readonly class EloquentTitleRepository implements TitleRepository
     public function findBySlug(Slug $slug): ?Title
     {
         return $this->toDomain($this->query()->where('slug', $slug->value)->first());
+    }
+
+    public function findByEpisodeId(EpisodeId $id): ?Title
+    {
+        return $this->toDomain($this->query()->whereHas('seasons.episodes', fn ($episodes) => $episodes->whereKey($id->value))->first());
     }
 
     /** @return Builder<TitleRecord> */

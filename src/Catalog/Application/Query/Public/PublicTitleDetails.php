@@ -25,5 +25,7 @@ final readonly class PublicTitleDetails
         public ?string $backdropPath,
         public array $genres,
         public array $seasons,
+        /** Chemin public du flux HLS d'un film dont le média est prêt (« hls/<id>/master.m3u8 »), sinon null. */
+        public ?string $streamPath = null,
     ) {}
 }

@@ -1,9 +1,17 @@
 @php
     $isSeries = $title->type->value === 'series';
     $minutes = $title->runtimeMinutes;
+
+    // Le chemin du flux est déjà contrôlé par le lecteur SQL ; l'URL publique est le même chemin, sous la racine du site.
+    $movieStream = $title->streamPath !== null ? '/'.$title->streamPath : null;
+    $hasEpisodeStream = collect($title->seasons)->flatMap(fn ($season) => $season->episodes)->contains(fn ($episode) => $episode->streamPath !== null);
 @endphp
 
 <x-catalog::public-layout :title="$title->name" :description="$title->overview !== '' ? $title->overview : $title->name">
+    @if ($movieStream !== null || $hasEpisodeStream)
+        @vite('resources/js/player.js')
+    @endif
+
     <article class="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
         <nav aria-label="{{ __('Fil d\'Ariane') }}" class="mb-4 text-sm text-gray-500">
             <a href="{{ route('home') }}" class="hover:text-indigo-700">{{ __('Accueil') }}</a>
@@ -56,6 +64,27 @@
             </div>
         </div>
 
+
+        @if ($movieStream !== null || $hasEpisodeStream)
+            <section class="mt-8" aria-labelledby="lecture" data-player>
+                <h2 id="lecture" class="mb-3 text-xl font-semibold">{{ __('Lecture') }}</h2>
+
+                <video data-player-video controls playsinline preload="none"
+                       @if ($movieStream !== null) data-hls="{{ $movieStream }}" @else hidden @endif
+                       class="aspect-video w-full rounded-lg bg-black"
+                       aria-label="{{ __('Lecteur vidéo : :title', ['title' => $title->name]) }}">
+                    {{ __('Votre navigateur ne sait pas lire les vidéos.') }}
+                </video>
+
+                <p data-player-caption class="mt-2 text-sm text-gray-600"></p>
+                <p data-player-message hidden class="mt-2 rounded-md bg-red-50 p-3 text-sm text-red-800" role="alert"></p>
+
+                @if ($hasEpisodeStream && $movieStream === null)
+                    <p class="mt-2 text-sm text-gray-500">{{ __('Choisissez un épisode ci-dessous pour lancer la lecture.') }}</p>
+                @endif
+            </section>
+        @endif
+
         @if ($isSeries && $title->seasons !== [])
             <section class="mt-10" aria-labelledby="saisons">
                 <h2 id="saisons" class="mb-4 text-xl font-semibold">{{ __('Saisons et épisodes') }}</h2>
@@ -90,6 +119,14 @@
                                                     <p class="mt-0.5 text-sm text-gray-600">{{ $episode->overview }}</p>
                                                 @endif
                                             </div>
+                                            @if ($episode->streamPath !== null)
+                                                <button type="button" data-play-episode data-hls="/{{ $episode->streamPath }}"
+                                                        data-label="{{ $season->number }}x{{ $episode->number }} {{ $episode->name }}"
+                                                        class="flex-none self-start rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                    {{ __('Lire') }}
+                                                    <span class="sr-only">{{ __('l\'épisode :n', ['n' => $episode->number]) }}</span>
+                                                </button>
+                                            @endif
                                         </li>
                                     @endforeach
                                 </ol>

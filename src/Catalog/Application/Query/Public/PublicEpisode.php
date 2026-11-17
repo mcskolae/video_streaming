@@ -13,5 +13,7 @@ final readonly class PublicEpisode
         public ?int $runtimeMinutes,
         public ?string $stillPath,
         public bool $playable,
+        /** Chemin public du flux HLS de l'épisode s'il est prêt, sinon null. */
+        public ?string $streamPath = null,
     ) {}
 }

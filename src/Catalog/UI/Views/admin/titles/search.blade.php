@@ -2,7 +2,7 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Importer un film depuis TMDB') }}</h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ $type->value === 'series' ? __('Importer une série depuis TMDB') : __('Importer un film depuis TMDB') }}</h2>
     </x-slot>
 
     <div class="py-12">
@@ -13,10 +13,16 @@
                 <div class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-800" role="alert">{{ $error }}</div>
             @endif
 
+            <nav class="mb-4 flex gap-4 text-sm font-medium" aria-label="{{ __('Type de titre') }}">
+                <a href="{{ route('admin.titles.search', ['type' => 'movie']) }}" @class(['text-indigo-700 underline' => $type->value === 'movie', 'text-gray-600 hover:underline' => $type->value !== 'movie'])>{{ __('Films') }}</a>
+                <a href="{{ route('admin.titles.search', ['type' => 'series']) }}" @class(['text-indigo-700 underline' => $type->value === 'series', 'text-gray-600 hover:underline' => $type->value !== 'series'])>{{ __('Séries') }}</a>
+            </nav>
+
             <form method="GET" action="{{ route('admin.titles.search') }}" class="mb-6 flex gap-3">
-                <label for="query" class="sr-only">{{ __('Titre du film') }}</label>
+                <input type="hidden" name="type" value="{{ $type->value }}">
+                <label for="query" class="sr-only">{{ $type->value === 'series' ? __('Titre de la série') : __('Titre du film') }}</label>
                 <input id="query" name="query" type="search" value="{{ $query }}" maxlength="200" required autofocus
-                       placeholder="{{ __('Titre du film') }}"
+                       placeholder="{{ $type->value === 'series' ? __('Titre de la série') : __('Titre du film') }}"
                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 <x-primary-button>{{ __('Rechercher') }}</x-primary-button>
             </form>
@@ -27,7 +33,7 @@
 
             @if ($query !== '' && ! $error)
                 @if ($hits === [])
-                    <p class="text-gray-600">{{ __('Aucun film trouvé.') }}</p>
+                    <p class="text-gray-600">{{ $type->value === 'series' ? __('Aucune série trouvée.') : __('Aucun film trouvé.') }}</p>
                 @else
                     <ul class="space-y-4">
                         @foreach ($hits as $hit)
@@ -49,7 +55,7 @@
                                     @endif
                                     <p class="mt-2 text-sm text-gray-700">{{ \Illuminate\Support\Str::limit($hit->result->overview, 280) }}</p>
                                     <div class="mt-3 flex items-center gap-3">
-                                        <a href="{{ route('admin.titles.preview', $hit->result->tmdbId->value) }}" class="text-sm font-medium text-indigo-700 hover:underline">{{ __('Aperçu') }}</a>
+                                        <a href="{{ $type->value === 'series' ? route('admin.titles.preview-series', $hit->result->tmdbId->value) : route('admin.titles.preview', $hit->result->tmdbId->value) }}" class="text-sm font-medium text-indigo-700 hover:underline">{{ __('Aperçu') }}</a>
                                         @if ($hit->imported)
                                             <span class="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">{{ __('Déjà au catalogue') }}</span>
                                         @endif

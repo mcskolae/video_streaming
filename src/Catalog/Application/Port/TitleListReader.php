@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace HomeFlix\Catalog\Application\Port;
 
+use HomeFlix\Catalog\Application\Query\AdminSeries;
 use HomeFlix\Catalog\Application\Query\AdminTitlePage;
 use HomeFlix\Catalog\Domain\Model\TitleType;
 
@@ -22,4 +23,7 @@ interface TitleListReader
      * @return list<int>
      */
     public function importedTmdbIds(TitleType $type, array $tmdbIds): array;
+
+    /** Une série avec ses saisons et ses épisodes, ou null si l'identifiant n'est pas celui d'une série. */
+    public function adminSeries(string $titleId): ?AdminSeries;
 }

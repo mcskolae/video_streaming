@@ -7,7 +7,6 @@ namespace HomeFlix\Catalog\Application\Query;
 use HomeFlix\Catalog\Application\Exception\MetadataProviderUnavailable;
 use HomeFlix\Catalog\Application\Port\MetadataProvider;
 use HomeFlix\Catalog\Application\Port\TitleListReader;
-use HomeFlix\Catalog\Domain\Model\TitleType;
 
 final readonly class SearchTmdbMoviesHandler
 {
@@ -23,10 +22,10 @@ final readonly class SearchTmdbMoviesHandler
      */
     public function handle(SearchTmdbMovies $query): array
     {
-        $results = $this->metadata->search($query->query, TitleType::Movie);
+        $results = $this->metadata->search($query->query, $query->type);
 
         $imported = array_flip($this->reader->importedTmdbIds(
-            TitleType::Movie,
+            $query->type,
             array_map(fn ($result) => $result->tmdbId->value, $results),
         ));
 

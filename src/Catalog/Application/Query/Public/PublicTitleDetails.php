@@ -14,6 +14,7 @@ final readonly class PublicTitleDetails
      * @param  list<PublicSeason>  $seasons  vide pour un film
      */
     public function __construct(
+        public string $id,
         public string $slug,
         public TitleType $type,
         public string $name,

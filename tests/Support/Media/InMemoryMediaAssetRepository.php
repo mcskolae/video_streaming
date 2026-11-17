@@ -45,6 +45,11 @@ final class InMemoryMediaAssetRepository implements MediaAssetRepository
         return null;
     }
 
+    public function delete(MediaAssetId $id): void
+    {
+        unset($this->stored[$id->value]);
+    }
+
     private function copy(string $data): MediaAsset
     {
         $asset = unserialize($data);

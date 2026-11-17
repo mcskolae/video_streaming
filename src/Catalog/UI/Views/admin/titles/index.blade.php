@@ -57,13 +57,16 @@
                                     </td>
                                     <td class="px-4 py-3 text-gray-700">{{ $title->playable ? __('Prêt') : __('Aucun') }}</td>
                                     <td class="px-4 py-3 text-right">
+                                        @if ($title->type->value === 'movie')
+                                            <a href="{{ route('admin.media.show', ['kind' => 'title', 'target' => $title->id]) }}" class="mr-3 text-sm font-medium text-gray-700 hover:underline">{{ __('Vidéo') }}</a>
+                                        @endif
                                         @if ($title->status->value === 'published')
-                                            <form method="POST" action="{{ route('admin.titles.unpublish', $title->id) }}">
+                                            <form method="POST" action="{{ route('admin.titles.unpublish', $title->id) }}" class="inline">
                                                 @csrf
                                                 <button type="submit" class="text-sm font-medium text-red-700 hover:underline">{{ __('Dépublier') }}</button>
                                             </form>
                                         @elseif ($title->playable)
-                                            <form method="POST" action="{{ route('admin.titles.publish', $title->id) }}">
+                                            <form method="POST" action="{{ route('admin.titles.publish', $title->id) }}" class="inline">
                                                 @csrf
                                                 <button type="submit" class="text-sm font-medium text-indigo-700 hover:underline">{{ __('Publier') }}</button>
                                             </form>

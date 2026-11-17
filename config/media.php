@@ -23,6 +23,9 @@ return [
     'ffmpeg' => env('FFMPEG_BINARY', 'ffmpeg'),
     'ffprobe' => env('FFPROBE_BINARY', 'ffprobe'),
 
+    // Taille maximale d'un fichier envoyé, en mégaoctets (8 Go par défaut : le disque de la VM est limité).
+    'max_upload_mb' => (int) env('MEDIA_MAX_UPLOAD_MB', 8192),
+
     // Durée maximale d'un transcodage (secondes) : 4 heures. Le serveur n'a pas d'encodage matériel.
     'transcode_timeout' => (int) env('MEDIA_TRANSCODE_TIMEOUT', 14400),
 

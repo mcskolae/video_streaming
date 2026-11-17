@@ -104,7 +104,7 @@ describe('access', function () {
     it('protects every route under /admin/media with auth, admin and the web group', function () {
         $routes = collect(Route::getRoutes()->getRoutes())->filter(fn ($route) => str_starts_with($route->uri(), 'admin/media'));
 
-        expect($routes)->toHaveCount(5);
+        expect($routes)->toHaveCount(6);
 
         foreach ($routes as $route) {
             expect($route->gatherMiddleware())->toContain('auth', 'admin', 'web');

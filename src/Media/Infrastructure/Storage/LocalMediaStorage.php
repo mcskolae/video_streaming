@@ -39,6 +39,11 @@ final readonly class LocalMediaStorage implements MediaStorage
         return 'hls/'.$id->value;
     }
 
+    public function exists(RelativePath $path): bool
+    {
+        return $this->files->isFile($this->absolutePath($path));
+    }
+
     public function deleteFile(RelativePath $path): void
     {
         $this->files->delete($this->absolutePath($path));

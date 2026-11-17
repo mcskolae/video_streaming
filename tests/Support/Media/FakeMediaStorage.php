@@ -36,6 +36,14 @@ final class FakeMediaStorage implements MediaStorage
         return 'hls/'.$id->value;
     }
 
+    /** @var list<string> fichiers qui n'existent pas (tout le reste existe) */
+    public array $missing = [];
+
+    public function exists(RelativePath $path): bool
+    {
+        return ! in_array($path->value, $this->missing, true);
+    }
+
     public function deleteFile(RelativePath $path): void
     {
         $this->deletedFiles[] = $path->value;

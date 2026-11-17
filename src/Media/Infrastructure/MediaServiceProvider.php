@@ -6,6 +6,7 @@ namespace HomeFlix\Media\Infrastructure;
 
 use HomeFlix\Media\Application\Command\TranscodeMediaHandler;
 use HomeFlix\Media\Application\Port\FileTypeDetector;
+use HomeFlix\Media\Application\Port\MediaListReader;
 use HomeFlix\Media\Application\Port\MediaProbe;
 use HomeFlix\Media\Application\Port\MediaStorage;
 use HomeFlix\Media\Application\Port\PlayableCatalog;
@@ -16,6 +17,7 @@ use HomeFlix\Media\Application\Upload\UploadRules;
 use HomeFlix\Media\Domain\Repository\MediaAssetRepository;
 use HomeFlix\Media\Infrastructure\Ffmpeg\FfmpegTranscoder;
 use HomeFlix\Media\Infrastructure\Ffmpeg\FfprobeMediaProbe;
+use HomeFlix\Media\Infrastructure\Persistence\DatabaseMediaListReader;
 use HomeFlix\Media\Infrastructure\Persistence\DatabasePlayableCatalog;
 use HomeFlix\Media\Infrastructure\Persistence\EloquentMediaAssetRepository;
 use HomeFlix\Media\Infrastructure\Queue\LaravelTranscodingQueue;
@@ -41,6 +43,7 @@ final class MediaServiceProvider extends ServiceProvider
         ));
 
         $this->app->bind(PlayableCatalog::class, DatabasePlayableCatalog::class);
+        $this->app->bind(MediaListReader::class, DatabaseMediaListReader::class);
         $this->app->bind(FileTypeDetector::class, FinfoFileTypeDetector::class);
 
         $this->app->bind(UploadStore::class, fn (Application $app) => new FilesystemUploadStore(

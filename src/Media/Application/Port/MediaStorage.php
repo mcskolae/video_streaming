@@ -19,6 +19,9 @@ interface MediaStorage
     /** Chemin relatif du dossier HLS d'un média : `hls/<id>`. */
     public function hlsRelativePath(MediaAssetId $id): string;
 
+    /** Le fichier existe-t-il ? */
+    public function exists(RelativePath $path): bool;
+
     public function deleteFile(RelativePath $path): void;
 
     /** Supprime le dossier HLS d'un média (après un échec, pour ne pas laisser de flux à moitié écrit). */

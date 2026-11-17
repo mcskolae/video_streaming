@@ -34,3 +34,7 @@ Thumbs.db
 # Fichiers d'instructions générés par le squelette Laravel, non utilisés ici
 /CLAUDE.md
 /AGENTS.md
+/.env.prod
+
+# Dernier commit déployé avec succès (écrit par scripts/ci-deploy.sh)
+/.last-deployed

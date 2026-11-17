@@ -29,3 +29,7 @@ docker compose exec app vendor/bin/pest
 ## Workflow Git
 
 Voir [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+## Déploiement
+
+Voir [`docs/DEPLOY.md`](docs/DEPLOY.md).

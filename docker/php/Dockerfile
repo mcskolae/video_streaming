@@ -34,6 +34,10 @@ WORKDIR /var/www/html
 FROM base AS dev
 ARG UID=1000
 ARG GID=1000
+# pcov : mesure de la couverture des tests (pas dans l'image de production).
+RUN install-php-extensions pcov \
+    && echo "pcov.enabled=0" > /usr/local/etc/php/conf.d/zz-pcov.ini \
+    && echo "pcov.directory=/var/www/html/src" >> /usr/local/etc/php/conf.d/zz-pcov.ini
 RUN groupadd -g ${GID} app && useradd -u ${UID} -g ${GID} -m app
 USER app
 

@@ -39,7 +39,7 @@ jobs:
         with:
           php-version: "8.5"
           extensions: pdo_pgsql, intl, zip, pcntl, bcmath, redis
-          coverage: none
+          coverage: pcov
 
       - name: Cache Composer
         uses: actions/cache@v4
@@ -55,7 +55,9 @@ jobs:
       - run: cp .env.example .env && php artisan key:generate
       - run: vendor/bin/pint --test
       - run: vendor/bin/phpstan analyse --memory-limit=512M --no-progress
-      - run: vendor/bin/pest
+      - run: vendor/bin/pest --coverage-clover=coverage.xml
+      - name: Couverture du domaine (seuil 90 %)
+        run: php scripts/check-domain-coverage.php coverage.xml 90
       # Script d'envoi par morceaux : testé avec le lanceur de tests intégré à Node, sans dépendance.
       - run: node --test tests/js/*.test.mjs
 

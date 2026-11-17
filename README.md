@@ -51,6 +51,8 @@ DDD et architecture hexagonale, cinq contextes dans `src/` : `Catalog`, `Media`,
 docker compose exec app vendor/bin/pint --test
 docker compose exec app vendor/bin/phpstan analyse --memory-limit=512M
 docker compose exec app vendor/bin/pest
+docker compose exec app php -d pcov.enabled=1 vendor/bin/pest --coverage-clover=coverage.xml
+php scripts/check-domain-coverage.php coverage.xml 90   # seuil de la CI : domaine à 90 %
 pnpm run test:js        # scripts d'envoi et de lecture, avec le lanceur de tests de Node
 ```
 

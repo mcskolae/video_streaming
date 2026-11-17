@@ -70,6 +70,20 @@ scripts/deploy.sh                       # build, démarrage, migrations
 
 Vérifie ensuite que `https://ton-domaine` répond avec un cadenas valide.
 
+## 6 bis. Créer le premier administrateur
+
+Aucun compte administrateur n'existe après le premier déploiement. Il se crée avec une commande Artisan, sur la VM, dans un terminal interactif (`-t`) : le mot de passe est saisi de façon masquée, il ne passe ni par l'historique du shell, ni par les variables d'environnement, ni par le dépôt.
+
+```sh
+ssh -t ubuntu@<ip> 'cd ~/video_streaming && docker compose -f compose.prod.yml --env-file .env.prod exec app php artisan homeflix:make-admin ton@adresse'
+```
+
+- Si l'adresse n'a pas de compte, la commande demande un nom et un mot de passe (12 caractères minimum, avec confirmation).
+- Si l'adresse a déjà un compte (inscrit via le site), il est promu administrateur sans toucher à son mot de passe.
+- Un compte déjà administrateur n'est pas modifié.
+
+Il n'y a ni réinitialisation de mot de passe par e-mail ni vérification d'adresse : le projet n'a pas de serveur d'e-mail. Un mot de passe perdu se remplace en recréant le compte ou depuis `php artisan tinker`.
+
 ## 7. Sauvegardes
 
 Planifie la sauvegarde de la base avec `crontab -e` :

@@ -15,7 +15,9 @@ RUN corepack enable
 COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --frozen-lockfile || pnpm install
 COPY resources ./resources
-COPY vite.config.js ./
+# Les vues Blade de src/ sont analysées par Tailwind : sans elles, leurs classes seraient supprimées.
+COPY src ./src
+COPY vite.config.js tailwind.config.js postcss.config.js ./
 RUN pnpm run build
 
 # --- Base commune PHP-FPM ---

@@ -28,6 +28,8 @@ Réservée aux administrateurs (`/admin/titles`, lien « Catalogue » dans la na
 
 L'import demande la clé TMDB (`secrets/tmdb_api_key`, voir `docs/DEPLOY.md`).
 
+Pour une démonstration sans contenu protégé : `php artisan homeflix:demo --download` charge deux films libres de la Blender Foundation (voir [`docs/DEMO.md`](docs/DEMO.md)).
+
 ## Vidéos : de l'envoi à la lecture
 
 1. L'administrateur ouvre la page « Vidéo » d'un film (`/admin/media/title/<id>`) et envoie un fichier. Le script le découpe en morceaux de 5 Mo (reprise possible après une coupure) ; le serveur contrôle le contenu réel (type MIME, `ffprobe`) et le met en file.

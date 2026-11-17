@@ -91,6 +91,38 @@ ssh -t ubuntu@<ip> 'cd ~/video_streaming && docker compose -f compose.prod.yml -
 
 Il n'y a ni réinitialisation de mot de passe par e-mail ni vérification d'adresse : le projet n'a pas de serveur d'e-mail. Un mot de passe perdu se remplace en recréant le compte ou depuis `php artisan tinker`.
 
+## 6 ter. Vidéos : worker, planificateur et stockage
+
+Le déploiement démarre deux conteneurs en plus du site :
+
+- `worker` : exécute les conversions vidéo (`queue:work`, un seul transcodage à la fois, redémarré toutes les heures) ;
+- `scheduler` : exécute les tâches planifiées (nettoyage nocturne des envois abandonnés).
+
+Les deux montent le volume `${MEDIA_PATH}` (par défaut `/srv/media`) en écriture ; Nginx le monte en lecture seule et ne sert que `/hls/`.
+
+Variables à avoir dans `.env.prod` sur la VM (elles sont dans `.env.prod.example`) :
+
+| Variable | Valeur | Rôle |
+|---|---|---|
+| `MEDIA_ROOT` | `/srv/media` | Racine du stockage **dans les conteneurs**. Sans elle, les vidéos seraient écrites dans le conteneur et non dans le volume que Nginx sert. |
+| `MEDIA_DELETE_SOURCE` | `true` | Supprime le fichier envoyé une fois le flux prêt (économise le disque). |
+| `QUEUE_CONNECTION` | `redis` | File de transcodage. |
+
+Vérifier après un déploiement :
+
+```sh
+docker compose -f compose.prod.yml --env-file .env.prod ps            # worker et scheduler « Up »
+docker compose -f compose.prod.yml --env-file .env.prod logs worker --tail 20
+docker compose -f compose.prod.yml --env-file .env.prod exec app ffmpeg -version | head -1
+df -h /srv/media                                                      # place restante
+```
+
+Limites à connaître :
+
+- Le transcodage sur ARM, sans encodage matériel, est lent. Essayer d'abord avec une courte vidéo.
+- Un worker arrêté en pleine conversion (déploiement) laisse la vidéo « en cours » : elle ne se débloque pas toute seule. Voir `/admin/media`.
+- Les flux ne sont pas protégés par un compte : quiconque connaît l'URL d'un flux peut le lire, même celui d'un titre dépublié.
+
 ## 7. Pas de sauvegarde
 
 Le projet n'a volontairement ni sauvegarde de la base ni tâche planifiée : les données (comptes, catalogue importé de TMDB) se recréent facilement et le projet est personnel. Conséquence à connaître : une migration défectueuse ou la perte de la VM efface les données. Les migrations destructives doivent rester protégées par une garde, comme celle de `users` qui refuse de s'exécuter si la table contient des comptes.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace HomeFlix\Catalog\Domain\Repository;
 
+use HomeFlix\Catalog\Domain\Model\EpisodeId;
 use HomeFlix\Catalog\Domain\Model\Slug;
 use HomeFlix\Catalog\Domain\Model\Title;
 use HomeFlix\Catalog\Domain\Model\TitleId;
@@ -21,4 +22,7 @@ interface TitleRepository
     public function findByTmdbId(TitleType $type, TmdbId $tmdbId): ?Title;
 
     public function findBySlug(Slug $slug): ?Title;
+
+    /** La série qui contient cet épisode. */
+    public function findByEpisodeId(EpisodeId $id): ?Title;
 }

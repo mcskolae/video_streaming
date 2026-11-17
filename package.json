@@ -4,6 +4,7 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
+        "test:js": "node --test tests/js/*.test.mjs",
         "dev": "vite"
     },
     "devDependencies": {
@@ -19,5 +20,8 @@
     },
     "optionalDependencies": {
         "@laravel/multiplex": "^0.4.1"
+    },
+    "dependencies": {
+        "hls.js": "^1.7.4"
     }
 }

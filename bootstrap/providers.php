@@ -7,6 +7,10 @@ use HomeFlix\Catalog\Infrastructure\CatalogServiceProvider;
 use HomeFlix\Catalog\UI\CatalogUiServiceProvider;
 use HomeFlix\Identity\Infrastructure\IdentityServiceProvider;
 use HomeFlix\Identity\UI\IdentityUiServiceProvider;
+use HomeFlix\Library\Infrastructure\LibraryServiceProvider;
+use HomeFlix\Library\UI\LibraryUiServiceProvider;
+use HomeFlix\Media\Infrastructure\MediaServiceProvider;
+use HomeFlix\Media\UI\MediaUiServiceProvider;
 use HomeFlix\Shared\Infrastructure\SharedServiceProvider;
 
 return [
@@ -16,4 +20,8 @@ return [
     CatalogUiServiceProvider::class,
     IdentityServiceProvider::class,
     IdentityUiServiceProvider::class,
+    LibraryServiceProvider::class,
+    LibraryUiServiceProvider::class,
+    MediaServiceProvider::class,
+    MediaUiServiceProvider::class,
 ];

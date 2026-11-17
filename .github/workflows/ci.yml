@@ -47,11 +47,17 @@ jobs:
           path: ~/.composer/cache
           key: composer-${{ hashFiles('composer.lock') }}
 
+      # Les tests de transcodage lancent le vrai ffmpeg sur de courtes vidéos générées.
+      - name: Install ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg
+
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: cp .env.example .env && php artisan key:generate
       - run: vendor/bin/pint --test
       - run: vendor/bin/phpstan analyse --memory-limit=512M --no-progress
       - run: vendor/bin/pest
+      # Script d'envoi par morceaux : testé avec le lanceur de tests intégré à Node, sans dépendance.
+      - run: node --test tests/js/*.test.mjs
 
   # Déploiement continu : uniquement sur un push sur main (jamais sur une pull request,
   # donc jamais pour un fork), et seulement si le job quality a réussi.

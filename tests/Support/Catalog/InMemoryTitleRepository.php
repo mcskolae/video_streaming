@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Support\Catalog;
 
+use HomeFlix\Catalog\Domain\Model\EpisodeId;
 use HomeFlix\Catalog\Domain\Model\Slug;
 use HomeFlix\Catalog\Domain\Model\Title;
 use HomeFlix\Catalog\Domain\Model\TitleId;
@@ -53,6 +54,21 @@ final class InMemoryTitleRepository implements TitleRepository
         foreach ($this->all() as $title) {
             if ($title->slug()->equals($slug)) {
                 return $title;
+            }
+        }
+
+        return null;
+    }
+
+    public function findByEpisodeId(EpisodeId $id): ?Title
+    {
+        foreach ($this->all() as $title) {
+            foreach ($title->seasons() as $season) {
+                foreach ($season->episodes() as $episode) {
+                    if ($episode->id->equals($id)) {
+                        return $title;
+                    }
+                }
             }
         }
 

@@ -45,7 +45,14 @@ Crée un sous-domaine gratuit (par exemple sur DuckDNS) qui pointe vers l'IP pub
 
 ## 4. Clé TMDB [toi]
 
-Crée un compte sur themoviedb.org, puis demande une clé d'API dans *Paramètres, API*. Tu auras besoin de la clé « API Key » (v3).
+Crée un compte sur themoviedb.org, puis demande une clé d'API dans *Paramètres, API*. Deux valeurs sont acceptées, au choix :
+
+- le **jeton d'accès en lecture** (« API Read Access Token », il contient des points) : à préférer, car il est envoyé dans un en-tête et n'apparaît jamais dans une URL ;
+- la **clé d'API v3** (« API Key », 32 caractères hexadécimaux), envoyée en paramètre `api_key`.
+
+L'application reconnaît le type tout seule. La valeur va dans `secrets/tmdb_api_key` (saisie masquée par `scripts/generate-secrets.sh`) et n'est lue que par `secret('TMDB_API_KEY')`.
+
+Pour changer la clé sur la VM : `printf '%s' "<valeur>" > ~/video_streaming/secrets/tmdb_api_key`, puis redémarrer l'application (`docker compose -f compose.prod.yml --env-file .env.prod up -d --force-recreate app`).
 
 ## 5. GitHub [toi]
 
@@ -84,15 +91,9 @@ ssh -t ubuntu@<ip> 'cd ~/video_streaming && docker compose -f compose.prod.yml -
 
 Il n'y a ni réinitialisation de mot de passe par e-mail ni vérification d'adresse : le projet n'a pas de serveur d'e-mail. Un mot de passe perdu se remplace en recréant le compte ou depuis `php artisan tinker`.
 
-## 7. Sauvegardes
+## 7. Pas de sauvegarde
 
-Planifie la sauvegarde de la base avec `crontab -e` :
-
-```
-0 3 * * * /home/<utilisateur>/video_streaming/scripts/backup-db.sh
-```
-
-Les sauvegardes sont conservées 14 jours dans `~/backups`. Les vidéos ne sont pas sauvegardées : elles se re-téléversent.
+Le projet n'a volontairement ni sauvegarde de la base ni tâche planifiée : les données (comptes, catalogue importé de TMDB) se recréent facilement et le projet est personnel. Conséquence à connaître : une migration défectueuse ou la perte de la VM efface les données. Les migrations destructives doivent rester protégées par une garde, comme celle de `users` qui refuse de s'exécuter si la table contient des comptes.
 
 ## 8. Déploiement continu (GitHub Actions)
 
@@ -103,7 +104,7 @@ Fonctionnement :
 1. Le job `deploy` de `.github/workflows/ci.yml` s'exécute uniquement sur un push sur `main`, après le job `quality`. Les pull requests, y compris celles des forks, ne le déclenchent jamais et n'accèdent à aucun secret.
 2. Il se connecte en SSH à la VM avec une clé dédiée. Côté serveur, cette clé est restreinte dans `~/.ssh/authorized_keys` par `restrict,command="/usr/local/bin/homeflix-deploy"` : quelle que soit la commande demandée, seul ce script s'exécute. Pas de shell, pas de terminal, pas de redirection de ports.
 3. `scripts/ci-entrypoint.sh` (installé en `/usr/local/bin/homeflix-deploy`, propriété de root) prend un verrou, récupère `origin/main`, refuse de continuer si `scripts/ci-deploy.sh` n'existe pas encore sur `main`, puis place le dépôt sur `main`.
-4. `scripts/ci-deploy.sh` sauvegarde la base, déploie (`scripts/deploy.sh`) et vérifie que `/up` répond sur le vrai certificat. En cas d'échec, il revient au code du déploiement précédent. Les migrations déjà appliquées ne sont pas annulées : écris des migrations compatibles avec l'ancien code.
+4. `scripts/ci-deploy.sh` déploie (`scripts/deploy.sh`) et vérifie que `/up` répond sur le vrai certificat. En cas d'échec, il revient au code du déploiement précédent. Les migrations déjà appliquées ne sont pas annulées : écris des migrations compatibles avec l'ancien code.
 5. Le workflow vérifie ensuite depuis Internet que le site répond.
 
 Configuration en place (environnement GitHub `production`, limité à la branche `main`) :

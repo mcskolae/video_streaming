@@ -18,6 +18,16 @@ docker compose exec app php artisan migrate
 
 Le site répond sur http://localhost:8080.
 
+## Administration du catalogue
+
+Réservée aux administrateurs (`/admin/titles`, lien « Catalogue » dans la navigation).
+
+1. **Importer un film** : recherche sur TMDB, aperçu (affiche, synopsis, genres, durée), puis import. Le film arrive en **brouillon**. Importer deux fois le même film met sa fiche à jour sans créer de doublon.
+2. **Publier** : possible seulement quand un média est prêt pour le titre. Tant que l'envoi et le transcodage des vidéos ne sont pas faits (cartes M2 et M3), aucun titre n'est publiable : le bouton affiche « Publication impossible ».
+3. **Dépublier** : repasse le titre en brouillon.
+
+L'import demande la clé TMDB (`secrets/tmdb_api_key`, voir `docs/DEPLOY.md`).
+
 ## Qualité
 
 ```sh

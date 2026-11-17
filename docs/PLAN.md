@@ -229,7 +229,7 @@ Services (`compose.yml` pour le dev, `compose.prod.yml` pour la production) :
 | `redis` | redis (arm64) | File, cache, sessions, non exposé |
 | `certbot` | certbot | Certificat Let's Encrypt, renouvellement automatique |
 
-Stockage : volume bloc Oracle de 100 à 150 Go monté sur l'hôte (`/srv/media`) et monté en bind dans `app`, `worker` et `nginx`. Les sauvegardes de la base (`pg_dump` quotidien) vont sur le volume du disque système.
+Stockage : volume bloc Oracle de 100 à 150 Go monté sur l'hôte (`/srv/media`) et monté en bind dans `app`, `worker` et `nginx`.
 
 Réseau Oracle : liste de sécurité qui n'ouvre que 22 (limité à ton IP si possible), 80 et 443. Pare-feu `ufw` en plus.
 

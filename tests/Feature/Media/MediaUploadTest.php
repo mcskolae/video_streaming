@@ -161,6 +161,15 @@ describe('upload page', function () {
             ->assertSee('&lt;script&gt;alert(1)&lt;/script&gt;', false);
     });
 
+    it('gives the script URL templates that it can fill with the real upload id', function () {
+        $this->actingAs($this->admin)->get("/admin/media/title/{$this->movieId}")
+            ->assertOk()
+            ->assertSee('data-status-url="'.url('/admin/media/uploads/__ID__').'"', false)
+            ->assertSee('data-chunk-url="'.url('/admin/media/uploads/__ID__/chunks/__INDEX__').'"', false)
+            ->assertSee('data-complete-url="'.url('/admin/media/uploads/__ID__/complete').'"', false)
+            ->assertDontSee('00000000-0000-7000-8000-000000000000');
+    });
+
     it('is linked from the catalog list for movies', function () {
         $this->actingAs($this->admin)->get('/admin/titles')->assertSee(route('admin.media.show', ['kind' => 'title', 'target' => $this->movieId]), false);
     });

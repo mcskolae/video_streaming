@@ -19,8 +19,11 @@ Route::middleware(['web', 'auth', 'admin'])
             Route::get('import', 'search')->name('search');
             Route::get('import/{tmdbId}', 'preview')->where('tmdbId', '[1-9][0-9]{0,9}')->name('preview');
             Route::post('import', 'import')->name('import');
+            Route::get('import/series/{tmdbId}', 'previewSeries')->where('tmdbId', '[1-9][0-9]{0,9}')->name('preview-series');
+            Route::post('import/series', 'importSeries')->name('import-series');
         });
 
+        Route::get('{title}', 'show')->whereUuid('title')->name('show');
         Route::post('{title}/publish', 'publish')->whereUuid('title')->name('publish');
         Route::post('{title}/unpublish', 'unpublish')->whereUuid('title')->name('unpublish');
     });

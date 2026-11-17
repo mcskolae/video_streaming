@@ -51,6 +51,36 @@ final class Season
         ksort($this->episodes);
     }
 
+    /**
+     * Met à jour la fiche d'un épisode connu, ou ajoute l'épisode. Un épisode connu garde son identifiant
+     * et son état lisible : réimporter ne fait jamais perdre un média.
+     */
+    public function upsertEpisode(
+        EpisodeId $idIfNew,
+        int $number,
+        string $name,
+        string $overview = '',
+        ?int $runtimeMinutes = null,
+        ?string $stillPath = null,
+    ): Episode {
+        $existing = $this->episodes[$number] ?? null;
+
+        $episode = new Episode(
+            $existing->id ?? $idIfNew,
+            $number,
+            $name,
+            $overview,
+            $runtimeMinutes,
+            $stillPath,
+            $existing?->isPlayable() ?? false,
+        );
+
+        $this->episodes[$number] = $episode;
+        ksort($this->episodes);
+
+        return $episode;
+    }
+
     public function episode(int $number): Episode
     {
         return $this->episodes[$number] ?? throw EpisodeNotFound::inSeason($this->number, $number);

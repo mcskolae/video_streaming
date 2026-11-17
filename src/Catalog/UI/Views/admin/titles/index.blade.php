@@ -4,10 +4,14 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Catalogue') }}</h2>
-            <a href="{{ route('admin.titles.search') }}"
-               class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
-                {{ __('Importer un film') }}
-            </a>
+            <div class="flex gap-2">
+                @foreach ([['movie', __('Importer un film')], ['series', __('Importer une série')]] as [$importType, $label])
+                    <a href="{{ route('admin.titles.search', ['type' => $importType]) }}"
+                       class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
+                        {{ $label }}
+                    </a>
+                @endforeach
+            </div>
         </div>
     </x-slot>
 
@@ -17,7 +21,7 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 @if ($titles->isEmpty())
-                    <p class="p-6 text-gray-600">{{ __('Le catalogue est vide. Importez un film depuis TMDB.') }}</p>
+                    <p class="p-6 text-gray-600">{{ __('Le catalogue est vide. Importez un film ou une série depuis TMDB.') }}</p>
                 @else
                     <table class="min-w-full divide-y divide-gray-200 text-sm">
                         <thead class="bg-gray-50 text-left text-xs uppercase tracking-wider text-gray-500">
@@ -59,6 +63,8 @@
                                     <td class="px-4 py-3 text-right">
                                         @if ($title->type->value === 'movie')
                                             <a href="{{ route('admin.media.show', ['kind' => 'title', 'target' => $title->id]) }}" class="mr-3 text-sm font-medium text-gray-700 hover:underline">{{ __('Vidéo') }}</a>
+                                        @else
+                                            <a href="{{ route('admin.titles.show', $title->id) }}" class="mr-3 text-sm font-medium text-gray-700 hover:underline">{{ __('Épisodes') }}</a>
                                         @endif
                                         @if ($title->status->value === 'published')
                                             <form method="POST" action="{{ route('admin.titles.unpublish', $title->id) }}" class="inline">

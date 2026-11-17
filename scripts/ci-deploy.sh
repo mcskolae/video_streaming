@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # Déploiement continu. Appelé par scripts/ci-entrypoint.sh une fois le dépôt placé sur main.
 #
-# 1. sauvegarde la base ;
-# 2. déploie (scripts/deploy.sh) ;
-# 3. vérifie que le site répond ;
-# 4. en cas d'échec, revient au code du déploiement précédent.
+# 1. déploie (scripts/deploy.sh) ;
+# 2. vérifie que le site répond ;
+# 3. en cas d'échec, revient au code du déploiement précédent.
 #
 # Le retour arrière ne concerne que le code : les migrations déjà appliquées ne sont pas annulées.
 set -euo pipefail
@@ -36,7 +35,6 @@ trap 'if [ "$success" != 1 ]; then rollback; fi' EXIT
 
 echo "Déploiement de ${new} (précédent : ${previous:-aucun})."
 
-scripts/backup-db.sh
 scripts/deploy.sh
 
 # Vérification locale, sur le vrai certificat : le nom de domaine est résolu vers cette machine.

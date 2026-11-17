@@ -166,6 +166,23 @@ final class Title extends AggregateRoot
         return $season;
     }
 
+    /**
+     * Met à jour la fiche d'une saison connue (réimport TMDB), ou l'ajoute. Une saison connue garde son
+     * identifiant et ses épisodes.
+     */
+    public function upsertSeason(SeasonId $idIfNew, int $number, string $name = '', string $overview = ''): Season
+    {
+        $this->assertSeries();
+
+        $existing = $this->seasons[$number] ?? null;
+
+        $season = new Season($existing->id ?? $idIfNew, $number, $name, $overview, $existing?->episodes() ?? []);
+        $this->seasons[$number] = $season;
+        ksort($this->seasons);
+
+        return $season;
+    }
+
     public function addEpisode(
         int $seasonNumber,
         EpisodeId $id,

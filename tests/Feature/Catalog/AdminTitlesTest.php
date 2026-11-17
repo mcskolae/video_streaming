@@ -9,6 +9,7 @@ use HomeFlix\Catalog\Domain\Model\TitleDetails;
 use HomeFlix\Catalog\Domain\Model\TmdbId;
 use HomeFlix\Catalog\Domain\Repository\TitleRepository;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
 use Tests\Support\CatalogFixtures as F;
@@ -49,6 +50,9 @@ describe('access', function () {
         'search' => ['get', '/admin/titles/import'],
         'preview' => ['get', '/admin/titles/import/10378'],
         'import' => ['post', '/admin/titles/import'],
+        'preview series' => ['get', '/admin/titles/import/series/1399'],
+        'import series' => ['post', '/admin/titles/import/series'],
+        'show series' => ['get', '/admin/titles/01900000-0000-7000-8000-000000000000'],
         'publish' => ['post', '/admin/titles/01900000-0000-7000-8000-000000000000/publish'],
         'unpublish' => ['post', '/admin/titles/01900000-0000-7000-8000-000000000000/unpublish'],
     ];
@@ -384,7 +388,7 @@ describe('protection', function () {
     it('protects every route under /admin/titles with auth, admin and the web group', function () {
         $routes = collect(Route::getRoutes()->getRoutes())->filter(fn ($route) => str_starts_with($route->uri(), 'admin/titles'));
 
-        expect($routes)->toHaveCount(6);
+        expect($routes)->toHaveCount(9);
 
         foreach ($routes as $route) {
             expect($route->gatherMiddleware())->toContain('auth', 'admin', 'web');
@@ -403,5 +407,115 @@ describe('protection', function () {
                 ->and(substr_count($html, 'name="_token"'))->toBeGreaterThanOrEqual(substr_count($html, '<form method="POST"'));
         }
 
+    });
+});
+
+function fakeTmdbSeries(): void
+{
+    Http::fake([
+        'api.themoviedb.org/3/search/tv*' => Http::response(['results' => [['id' => 1399, 'name' => 'Sintel Chronicles', 'original_name' => 'Sintel Chronicles', 'overview' => 'Une guerrière.', 'first_air_date' => '2010-09-27', 'poster_path' => null]]]),
+        'api.themoviedb.org/3/tv/1399/season/*' => fn (Request $request) => Http::response(Tmdb::season((int) basename(parse_url($request->url(), PHP_URL_PATH)))),
+        'api.themoviedb.org/3/tv/1399*' => Http::response(Tmdb::series()),
+        'api.themoviedb.org/3/tv/*' => Http::response([], 404),
+    ]);
+}
+
+describe('series', function () {
+    it('searches series, not movies, when asked', function () {
+        fakeTmdbSeries();
+
+        $this->actingAs($this->admin)->get('/admin/titles/import?type=series&query=sintel')
+            ->assertOk()
+            ->assertSee('Importer une série depuis TMDB')
+            ->assertSee(route('admin.titles.preview-series', 1399), false);
+
+        Http::assertSent(fn (Request $request) => str_contains($request->url(), '/search/tv'));
+    });
+
+    it('searches movies by default and refuses an unknown type', function () {
+        fakeTmdbMovie();
+
+        $this->actingAs($this->admin)->get('/admin/titles/import?query=big')->assertOk()->assertSee(route('admin.titles.preview', 10378), false);
+        $this->actingAs($this->admin)->get('/admin/titles/import?type=anime&query=big')->assertSessionHasErrors('type');
+    });
+
+    it('previews a series with its season and episode counts', function () {
+        fakeTmdbSeries();
+
+        $this->actingAs($this->admin)->get('/admin/titles/import/series/1399')
+            ->assertOk()
+            ->assertSee('Sintel Chronicles')
+            ->assertSee('Importer en brouillon');
+    });
+
+    it('imports a series with all its seasons and episodes, and lands on its page', function () {
+        fakeTmdbSeries();
+
+        $response = $this->actingAs($this->admin)->post('/admin/titles/import/series', ['tmdb_id' => 1399]);
+
+        $titleId = DB::table('titles')->where('tmdb_id', 1399)->where('type', 'series')->value('id');
+        $response->assertRedirect(route('admin.titles.show', $titleId))->assertSessionHas('status');
+        expect(DB::table('seasons')->where('title_id', $titleId)->count())->toBe(3)
+            ->and(DB::table('episodes')->count())->toBe(6);
+    });
+
+    it('does not create duplicates when a series is imported again', function () {
+        fakeTmdbSeries();
+
+        $this->actingAs($this->admin)->post('/admin/titles/import/series', ['tmdb_id' => 1399]);
+        $this->actingAs($this->admin)->post('/admin/titles/import/series', ['tmdb_id' => 1399]);
+
+        expect(DB::table('titles')->count())->toBe(1)
+            ->and(DB::table('seasons')->count())->toBe(3)
+            ->and(DB::table('episodes')->count())->toBe(6);
+    });
+
+    it('explains when TMDB does not know the series', function () {
+        fakeTmdbSeries();
+
+        $this->actingAs($this->admin)->from('/admin/titles/import/series/7')->post('/admin/titles/import/series', ['tmdb_id' => 7])
+            ->assertRedirect('/admin/titles/import/series/7')
+            ->assertSessionHas('error', 'Cette série est introuvable sur TMDB.');
+    });
+
+    it('lists seasons and episodes with an upload link for each episode', function () {
+        fakeTmdbSeries();
+        $this->actingAs($this->admin)->post('/admin/titles/import/series', ['tmdb_id' => 1399]);
+        $titleId = DB::table('titles')->value('id');
+        $episodeId = DB::table('episodes')->orderBy('number')->value('id');
+
+        $this->actingAs($this->admin)->get(route('admin.titles.show', $titleId))
+            ->assertOk()
+            ->assertSee('Saison 2')
+            ->assertSee('Pilote')
+            ->assertSee(route('admin.media.show', ['kind' => 'episode', 'target' => $episodeId]), false)
+            ->assertSee('Envoyez la vidéo d\'au moins un épisode');
+
+        $this->actingAs($this->admin)->get(route('admin.media.show', ['kind' => 'episode', 'target' => $episodeId]))->assertOk();
+    });
+
+    it('offers to publish once an episode is playable', function () {
+        fakeTmdbSeries();
+        $this->actingAs($this->admin)->post('/admin/titles/import/series', ['tmdb_id' => 1399]);
+        $titleId = DB::table('titles')->value('id');
+        DB::table('episodes')->limit(1)->update(['is_playable' => true]);
+
+        $this->actingAs($this->admin)->get(route('admin.titles.show', $titleId))
+            ->assertSee(route('admin.titles.publish', $titleId), false);
+    });
+
+    it('is not found for a movie or an unknown title', function () {
+        $movie = savedMovie();
+
+        $this->actingAs($this->admin)->get(route('admin.titles.show', $movie->id()->value))->assertNotFound();
+        $this->actingAs($this->admin)->get(route('admin.titles.show', '01900000-0000-7000-8000-000000000000'))->assertNotFound();
+    });
+
+    it('links a series to its episodes from the catalog list', function () {
+        fakeTmdbSeries();
+        $this->actingAs($this->admin)->post('/admin/titles/import/series', ['tmdb_id' => 1399]);
+        $titleId = DB::table('titles')->value('id');
+
+        $this->actingAs($this->admin)->get('/admin/titles')->assertSee(route('admin.titles.show', $titleId), false);
     });
 });

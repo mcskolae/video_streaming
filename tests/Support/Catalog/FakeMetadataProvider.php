@@ -19,6 +19,9 @@ final class FakeMetadataProvider implements MetadataProvider
     /** @var array<int, MovieMetadata> */
     private array $movies = [];
 
+    /** @var array<int, SeriesMetadata> */
+    private array $series = [];
+
     /** @var list<SearchResult> */
     public array $searchResults = [];
 
@@ -29,6 +32,13 @@ final class FakeMetadataProvider implements MetadataProvider
     public function withMovie(int $tmdbId, TitleDetails $details): self
     {
         $this->movies[$tmdbId] = new MovieMetadata(new TmdbId($tmdbId), $details);
+
+        return $this;
+    }
+
+    public function withSeries(SeriesMetadata $series): self
+    {
+        $this->series[$series->tmdbId->value] = $series;
 
         return $this;
     }
@@ -51,7 +61,10 @@ final class FakeMetadataProvider implements MetadataProvider
 
     public function series(TmdbId $id): SeriesMetadata
     {
-        throw MetadataNotFound::forTitle(TitleType::Series, $id);
+        $this->calls++;
+        $this->failIfUnavailable();
+
+        return $this->series[$id->value] ?? throw MetadataNotFound::forTitle(TitleType::Series, $id);
     }
 
     private function failIfUnavailable(): void

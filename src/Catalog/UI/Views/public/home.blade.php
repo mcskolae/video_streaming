@@ -7,6 +7,10 @@
     </section>
 
     <div class="mx-auto max-w-7xl space-y-10 px-4 py-10 sm:px-6 lg:px-8">
+        @auth
+            <x-library-continue-watching />
+        @endauth
+
         <section aria-labelledby="derniers-ajouts">
             <h2 id="derniers-ajouts" class="mb-4 text-xl font-semibold">{{ __('Derniers ajouts') }}</h2>
 

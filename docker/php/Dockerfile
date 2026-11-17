@@ -23,7 +23,8 @@ RUN pnpm run build
 # --- Base commune PHP-FPM ---
 FROM php:8.5-fpm-bookworm AS base
 ADD --chmod=0755 https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
-RUN apt-get update && apt-get install -y --no-install-recommends unzip \
+# ffmpeg : transcodage HLS (worker) et analyse des fichiers envoyés (ffprobe).
+RUN apt-get update && apt-get install -y --no-install-recommends unzip ffmpeg \
     && install-php-extensions pdo_pgsql intl zip pcntl opcache bcmath redis \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

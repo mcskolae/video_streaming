@@ -17,6 +17,24 @@ services:
       redis:
         condition: service_started
 
+  # Exécute les transcodages en arrière-plan (un seul à la fois).
+  worker:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: dev
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    command: ["php", "artisan", "queue:work", "--queue=transcoding,default", "--tries=1", "--timeout=14400", "--sleep=3"]
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
   nginx:
     image: nginx:1.29-alpine
     ports:

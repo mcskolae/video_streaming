@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace HomeFlix\Identity\Domain\Model;
 
+use DateTimeImmutable;
+use HomeFlix\Identity\Domain\Exception\CannotRemoveLastAdministrator;
 use InvalidArgumentException;
 
 /**
@@ -20,6 +22,7 @@ final class User
         private readonly Email $email,
         private readonly string $passwordHash,
         private Role $role,
+        private ?DateTimeImmutable $suspendedAt = null,
     ) {
         $name = trim($name);
 
@@ -39,9 +42,9 @@ final class User
         return new self($id, $name, $email, $passwordHash, Role::Admin);
     }
 
-    public static function reconstitute(UserId $id, string $name, Email $email, string $passwordHash, Role $role): self
+    public static function reconstitute(UserId $id, string $name, Email $email, string $passwordHash, Role $role, ?DateTimeImmutable $suspendedAt = null): self
     {
-        return new self($id, $name, $email, $passwordHash, $role);
+        return new self($id, $name, $email, $passwordHash, $role, $suspendedAt);
     }
 
     public function id(): UserId
@@ -84,5 +87,81 @@ final class User
         $this->role = Role::Admin;
 
         return true;
+    }
+
+    public function suspendedAt(): ?DateTimeImmutable
+    {
+        return $this->suspendedAt;
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->suspendedAt !== null;
+    }
+
+    /** Un administrateur suspendu ne peut plus rien faire : il ne compte pas parmi les administrateurs actifs. */
+    public function isActiveAdministrator(): bool
+    {
+        return $this->isAdministrator() && ! $this->isSuspended();
+    }
+
+    /**
+     * Change le rôle. Retourne faux s'il n'y a rien à changer.
+     *
+     * @param  int  $activeAdministrators  nombre d'administrateurs actifs, ce compte compris
+     *
+     * @throws CannotRemoveLastAdministrator si ce compte est le dernier administrateur actif et perd son rôle
+     */
+    public function changeRole(Role $role, int $activeAdministrators): bool
+    {
+        if ($this->role === $role) {
+            return false;
+        }
+
+        if (! $role->isAdministrator()) {
+            $this->assertNotLastAdministrator($activeAdministrators);
+        }
+
+        $this->role = $role;
+
+        return true;
+    }
+
+    /**
+     * Suspend le compte. Retourne faux s'il l'était déjà (la date d'origine est conservée).
+     *
+     * @param  int  $activeAdministrators  nombre d'administrateurs actifs, ce compte compris
+     *
+     * @throws CannotRemoveLastAdministrator si ce compte est le dernier administrateur actif
+     */
+    public function suspend(DateTimeImmutable $at, int $activeAdministrators): bool
+    {
+        if ($this->isSuspended()) {
+            return false;
+        }
+
+        $this->assertNotLastAdministrator($activeAdministrators);
+        $this->suspendedAt = $at;
+
+        return true;
+    }
+
+    /** Réactive le compte. Retourne faux s'il n'était pas suspendu. */
+    public function reactivate(): bool
+    {
+        if (! $this->isSuspended()) {
+            return false;
+        }
+
+        $this->suspendedAt = null;
+
+        return true;
+    }
+
+    private function assertNotLastAdministrator(int $activeAdministrators): void
+    {
+        if ($this->isActiveAdministrator() && $activeAdministrators <= 1) {
+            throw CannotRemoveLastAdministrator::create();
+        }
     }
 }

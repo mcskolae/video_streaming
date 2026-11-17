@@ -55,4 +55,14 @@ class UserFactory extends Factory
             'role' => Role::Admin,
         ]);
     }
+
+    /**
+     * Indicate that the account is suspended.
+     */
+    public function suspended(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'suspended_at' => now(),
+        ]);
+    }
 }

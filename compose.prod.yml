@@ -61,6 +61,25 @@ services:
         condition: service_started
     networks: [internal]
 
+  # Tâches planifiées (nettoyage nocturne des envois abandonnés).
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: prod
+    restart: unless-stopped
+    command: ["php", "artisan", "schedule:work"]
+    env_file: .env.prod
+    secrets: [app_key, db_password, tmdb_api_key]
+    volumes:
+      - ${MEDIA_PATH:-/srv/media}:/srv/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks: [internal]
+
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped

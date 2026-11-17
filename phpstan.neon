@@ -19,3 +19,12 @@ parameters:
             identifier: property.notFound
             path: tests/*
             message: '#Pest\\PendingCalls\\TestCall::#'
+        # Une fonction d'aide qui appelle test() reçoit un type union (TestCall ou proxy) : même cause, même exception.
+        -
+            identifier: method.notFound
+            path: tests/*
+            message: '#Pest\\Support\\HigherOrderTapProxy::#'
+        -
+            identifier: property.notFound
+            path: tests/*
+            message: '#Pest\\Support\\HigherOrderTapProxy::#'

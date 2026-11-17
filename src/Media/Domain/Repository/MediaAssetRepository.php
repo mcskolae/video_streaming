@@ -17,4 +17,7 @@ interface MediaAssetRepository
 
     /** Le média d'un film ou d'un épisode. Il n'y en a qu'un par cible. */
     public function findByTarget(PlayableRef $target): ?MediaAsset;
+
+    /** Supprime un média et ses qualités. */
+    public function delete(MediaAssetId $id): void;
 }

@@ -76,6 +76,11 @@ final readonly class EloquentMediaAssetRepository implements MediaAssetRepositor
         return $this->toDomain(MediaAssetRecord::query()->with('renditions')->where($column, $target->id->value)->first());
     }
 
+    public function delete(MediaAssetId $id): void
+    {
+        MediaAssetRecord::query()->whereKey($id->value)->delete();
+    }
+
     private function toDomain(?MediaAssetRecord $record): ?MediaAsset
     {
         if ($record === null) {

@@ -33,6 +33,25 @@ final class SampleVideos
         ], fn (?string $argument) => $argument !== null));
     }
 
+    /**
+     * Vidéo valide d'au moins la taille demandée (du bruit, qui se compresse mal) : de quoi faire plusieurs morceaux de 5 Mo.
+     */
+    public static function large(int $minimumBytes = 11 * 1024 * 1024): string
+    {
+        for ($seconds = 3; $seconds <= 24; $seconds += 3) {
+            $path = self::$cache['large-'.$seconds] ??= self::generate("large-{$seconds}.mp4", [
+                '-f', 'lavfi', '-i', 'nullsrc=size=1280x720:rate=24,geq=random(1)*255:128:128',
+                '-t', (string) $seconds, '-c:v', 'libx264', '-b:v', '30M', '-pix_fmt', 'yuv420p',
+            ]);
+
+            if (filesize($path) >= $minimumBytes) {
+                return $path;
+            }
+        }
+
+        throw new \RuntimeException('Impossible de fabriquer une vidéo assez grosse.');
+    }
+
     /** Fichier audio seul : valide pour ffmpeg, mais pas une vidéo. */
     public static function audioOnly(): string
     {

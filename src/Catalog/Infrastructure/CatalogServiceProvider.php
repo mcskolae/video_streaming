@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace HomeFlix\Catalog\Infrastructure;
 
 use HomeFlix\Catalog\Application\Port\MetadataProvider;
+use HomeFlix\Catalog\Application\Port\TitleListReader;
 use HomeFlix\Catalog\Domain\Repository\TitleRepository;
+use HomeFlix\Catalog\Infrastructure\Persistence\DatabaseTitleListReader;
 use HomeFlix\Catalog\Infrastructure\Persistence\EloquentTitleRepository;
 use HomeFlix\Catalog\Infrastructure\Tmdb\TmdbClient;
 use HomeFlix\Catalog\Infrastructure\Tmdb\TmdbMetadataProvider;
@@ -19,6 +21,7 @@ final class CatalogServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(TitleRepository::class, EloquentTitleRepository::class);
+        $this->app->bind(TitleListReader::class, DatabaseTitleListReader::class);
 
         $this->app->bind(TmdbClient::class, function (Application $app): TmdbClient {
             // La clé vient de config/services.php, qui la lit dans un secret Docker via secret().

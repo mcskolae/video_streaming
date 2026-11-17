@@ -35,3 +35,6 @@ Thumbs.db
 /CLAUDE.md
 /AGENTS.md
 /.env.prod
+
+# Dernier commit déployé avec succès (écrit par scripts/ci-deploy.sh)
+/.last-deployed

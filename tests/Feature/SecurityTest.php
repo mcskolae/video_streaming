@@ -111,3 +111,17 @@ describe('csrf', function () {
         $this->postJson(Livewire::getUpdateUri(), ['components' => []])->assertStatus(419);
     });
 });
+
+describe('error pages', function () {
+    it('give their inline style the nonce of the policy, so they are not unstyled', function (string $uri, int $status) {
+        $response = $this->actingAs(User::factory()->create())->get($uri)->assertStatus($status);
+        preg_match("/'nonce-([^']+)'/", (string) $response->headers->get('Content-Security-Policy'), $match);
+
+        preg_match_all('/<style\b[^>]*>/i', $response->getContent(), $styles);
+
+        expect($styles[0])->not->toBeEmpty();
+        foreach ($styles[0] as $tag) {
+            expect($tag)->toContain('nonce="'.$match[1].'"');
+        }
+    })->with([['/admin/users', 403], ['/titres/inconnu', 404]]);
+});

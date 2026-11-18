@@ -54,7 +54,8 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        // Un compte suspendu ne se connecte pas : même message qu'un mauvais mot de passe, pour ne rien révéler.
+        if (! Auth::attempt([...$this->only('email', 'password'), 'suspended_at' => null], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

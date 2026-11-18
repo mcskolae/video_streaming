@@ -26,6 +26,7 @@ use Illuminate\Notifications\Notifiable;
  * @property CarbonImmutable|null $email_verified_at
  * @property string $password
  * @property Role $role
+ * @property CarbonImmutable|null $suspended_at
  */
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -50,6 +51,7 @@ class User extends Authenticatable
             'email_verified_at' => 'immutable_datetime',
             'password' => 'hashed',
             'role' => Role::class,
+            'suspended_at' => 'immutable_datetime',
         ];
     }
 }

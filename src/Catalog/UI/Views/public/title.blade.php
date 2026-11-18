@@ -72,7 +72,8 @@
 
 
         @if ($movieStream !== null || $hasEpisodeStream)
-            <section class="mt-8" aria-labelledby="lecture" data-player>
+            <section class="mt-8" aria-labelledby="lecture" data-player
+                     @auth data-progress-url="{{ str_replace('00000000-0000-7000-8000-000000000000', '__ID__', route('progress.show', '00000000-0000-7000-8000-000000000000')) }}" @endauth>
                 <h2 id="lecture" class="mb-3 text-xl font-semibold">{{ __('Lecture') }}</h2>
 
                 <video data-player-video controls playsinline preload="none"

@@ -4,7 +4,16 @@ Site de streaming vidéo pour homelab (films et séries), en HLS.
 Projet annuel ESGI, 3e année Ingénierie du Web.
 
 Stack : Laravel, Blade, Livewire, Alpine, PostgreSQL, Redis, ffmpeg, Docker, Nginx.
-Architecture : DDD et hexagonale. Voir [`docs/PLAN.md`](docs/PLAN.md).
+Architecture : DDD et hexagonale.
+
+| Document | Contenu |
+|---|---|
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | contextes, couches, pipeline vidéo, choix du front |
+| [`docs/BASE-DE-DONNEES.md`](docs/BASE-DE-DONNEES.md) | schéma entité-relation (vérifié par un test), contraintes, choix |
+| [`docs/DEPLOY.md`](docs/DEPLOY.md) | déploiement sur le serveur, déploiement continu |
+| [`docs/DEMO.md`](docs/DEMO.md) | catalogue de démonstration de films libres |
+| [`docs/SOUTENANCE.md`](docs/SOUTENANCE.md) | scénario de démonstration et défense du modèle |
+| [`docs/PLAN.md`](docs/PLAN.md) | plan initial du projet |
 
 ## Démarrage en local
 
@@ -22,11 +31,15 @@ Le site répond sur http://localhost:8080. Le conteneur `worker` traite les conv
 
 Réservée aux administrateurs (`/admin/titles`, lien « Catalogue » dans la navigation).
 
-1. **Importer un film** : recherche sur TMDB, aperçu (affiche, synopsis, genres, durée), puis import. Le film arrive en **brouillon**. Importer deux fois le même film met sa fiche à jour sans créer de doublon.
-2. **Publier** : possible seulement quand un média est prêt pour le titre. Tant que l'envoi et le transcodage des vidéos ne sont pas faits (cartes M2 et M3), aucun titre n'est publiable : le bouton affiche « Publication impossible ».
+1. **Importer un film ou une série** : recherche sur TMDB (onglets Films et Séries), aperçu, puis import. Le titre arrive en **brouillon** ; une série vient avec toutes ses saisons et ses épisodes. Réimporter met la fiche à jour sans créer de doublon et garde les vidéos déjà envoyées.
+2. **Publier** : possible seulement quand un média est prêt (le film, ou au moins un épisode). Sinon le bouton affiche « Publication impossible ». La page d'une série (`/admin/titles/<id>`) liste ses épisodes, chacun avec son lien d'envoi de vidéo.
 3. **Dépublier** : repasse le titre en brouillon.
 
+Les comptes se gèrent dans `/admin/users` : liste, changement de rôle, suspension (le dernier administrateur actif ne peut ni perdre son rôle ni être suspendu).
+
 L'import demande la clé TMDB (`secrets/tmdb_api_key`, voir `docs/DEPLOY.md`).
+
+Pour une démonstration sans contenu protégé : `php artisan homeflix:demo --download` charge deux films libres de la Blender Foundation (voir [`docs/DEMO.md`](docs/DEMO.md)).
 
 ## Vidéos : de l'envoi à la lecture
 
@@ -39,7 +52,7 @@ Suivi et relance des conversions : `/admin/media`. Les envois abandonnés sont s
 
 ## Espace membre
 
-Un compte peut mettre des titres en **favoris** (`/favoris`). Les comptes administrateurs se créent avec `php artisan homeflix:make-admin <email>`.
+Un compte peut mettre des titres en **favoris** (`/favoris`) ; la lecture reprend là où elle s'est arrêtée et l'accueil propose « Reprendre la lecture ». Les comptes administrateurs se créent avec `php artisan homeflix:make-admin <email>`.
 
 ## Architecture
 
@@ -51,6 +64,8 @@ DDD et architecture hexagonale, cinq contextes dans `src/` : `Catalog`, `Media`,
 docker compose exec app vendor/bin/pint --test
 docker compose exec app vendor/bin/phpstan analyse --memory-limit=512M
 docker compose exec app vendor/bin/pest
+docker compose exec app php -d pcov.enabled=1 vendor/bin/pest --coverage-clover=coverage.xml
+php scripts/check-domain-coverage.php coverage.xml 90   # seuil de la CI : domaine à 90 %
 pnpm run test:js        # scripts d'envoi et de lecture, avec le lanceur de tests de Node
 ```
 

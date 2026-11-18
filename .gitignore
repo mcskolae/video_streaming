@@ -38,3 +38,4 @@ Thumbs.db
 
 # Dernier commit déployé avec succès (écrit par scripts/ci-deploy.sh)
 /.last-deployed
+coverage.xml

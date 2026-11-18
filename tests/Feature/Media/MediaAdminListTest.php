@@ -66,8 +66,8 @@ describe('access', function () {
     });
 
     it('shows the link to administrators only', function () {
-        $this->actingAs(User::factory()->create())->get('/dashboard')->assertDontSee(route('admin.media.index'), false);
-        $this->actingAs($this->admin)->get('/dashboard')->assertSee(route('admin.media.index'), false);
+        $this->actingAs(User::factory()->create())->get('/profile')->assertDontSee(route('admin.media.index'), false);
+        $this->actingAs($this->admin)->get('/profile')->assertSee(route('admin.media.index'), false);
     });
 });
 

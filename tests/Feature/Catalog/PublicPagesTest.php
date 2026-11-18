@@ -325,12 +325,12 @@ describe('TMDB attribution', function () {
 
 describe('navigation', function () {
     it('offers login and registration to a visitor', function () {
-        $this->get('/')->assertSee(route('login'), false)->assertSee(route('register'), false)->assertDontSee(route('dashboard'), false);
+        $this->get('/')->assertSee(route('login'), false)->assertSee(route('register'), false)->assertDontSee(route('profile.edit'), false);
     });
 
     it('offers the account to a logged-in user and the administration to an administrator only', function () {
         $this->actingAs(User::factory()->create())->get('/')
-            ->assertSee(route('dashboard'), false)->assertDontSee(route('admin.titles.index'), false)->assertDontSee(route('login'), false);
+            ->assertSee(route('profile.edit'), false)->assertDontSee(route('admin.titles.index'), false)->assertDontSee(route('login'), false);
 
         $this->actingAs(User::factory()->admin()->create())->get('/')
             ->assertSee(route('admin.titles.index'), false);

@@ -76,6 +76,13 @@ describe('content security policy', function () {
         expect($first)->not->toBe($second);
     });
 
+    it('allows the font files that the font stylesheet points to', function () {
+        [$header] = csp('/');
+        $fontSrc = collect(explode(';', $header))->first(fn ($directive) => str_contains($directive, 'font-src'));
+
+        expect($fontSrc)->toContain('https://fonts.bunny.net')->toContain('https://cdn.jsdelivr.net');
+    });
+
     it('allows the TMDB images and the video blobs the player needs', function () {
         [$header] = csp('/');
 

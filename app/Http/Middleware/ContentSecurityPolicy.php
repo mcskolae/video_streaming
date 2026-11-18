@@ -35,6 +35,8 @@ final class ContentSecurityPolicy
     {
         $tmdbImages = 'https://image.tmdb.org';
         $fonts = 'https://fonts.bunny.net';
+        // La feuille de bunny.net désigne des fichiers de police hébergés sur le CDN de fontsource.
+        $fontFiles = 'https://cdn.jsdelivr.net';
         // Serveur de développement Vite : uniquement quand il tourne.
         $dev = Vite::isRunningHot() ? ' '.rtrim((string) file_get_contents(Vite::hotFile())) : '';
 
@@ -44,7 +46,7 @@ final class ContentSecurityPolicy
             "style-src 'self' 'nonce-{$nonce}' {$fonts}{$dev}",
             "style-src-attr 'unsafe-inline'",
             "img-src 'self' data: {$tmdbImages}",
-            "font-src 'self' {$fonts}",
+            "font-src 'self' {$fonts} {$fontFiles}",
             "media-src 'self' blob:",
             "connect-src 'self'{$dev}",
             "worker-src 'self' blob:",

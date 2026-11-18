@@ -16,9 +16,6 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
                     @can('administer')
-                        <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
-                            {{ __('Administration') }}
-                        </x-nav-link>
                         <x-nav-link :href="route('admin.titles.index')" :active="request()->routeIs('admin.titles.*')">
                             {{ __('Catalogue') }}
                         </x-nav-link>
@@ -85,9 +82,6 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
             @can('administer')
-                <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
-                    {{ __('Administration') }}
-                </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.titles.index')" :active="request()->routeIs('admin.titles.*')">
                     {{ __('Catalogue') }}
                 </x-responsive-nav-link>

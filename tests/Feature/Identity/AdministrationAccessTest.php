@@ -16,23 +16,22 @@ it('refuses a simple user with a 403', function () {
         ->assertForbidden();
 });
 
-it('lets an administrator in', function () {
+it('sends an administrator from /admin to the catalogue', function () {
     $this->actingAs(User::factory()->admin()->create())
         ->get('/admin')
-        ->assertOk()
-        ->assertSee('Zone réservée aux administrateurs');
+        ->assertRedirect(route('admin.titles.index'));
 });
 
 it('shows the administration link only to administrators', function () {
     $this->actingAs(User::factory()->create())
         ->get('/dashboard')
         ->assertOk()
-        ->assertDontSee(route('admin.dashboard'), false);
+        ->assertDontSee(route('admin.titles.index'), false);
 
     $this->actingAs(User::factory()->admin()->create())
         ->get('/dashboard')
         ->assertOk()
-        ->assertSee(route('admin.dashboard'), false);
+        ->assertSee(route('admin.titles.index'), false);
 });
 
 it('protects every route under /admin with authentication and the admin check', function () {

@@ -41,3 +41,12 @@ test('users can logout', function () {
     $this->assertGuest();
     $response->assertRedirect('/');
 });
+
+test('the logout control is a real submit button, not an inline script blocked by the CSP', function () {
+    $html = $this->actingAs(User::factory()->create())->get('/profile')->getContent();
+
+    expect($html)
+        ->toContain('action="'.route('logout').'"')
+        ->not->toContain('onclick=')
+        ->not->toContain('href="'.route('logout').'"');
+});

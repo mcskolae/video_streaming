@@ -74,10 +74,10 @@ describe('access', function () {
     })->with($routes);
 
     it('shows the catalog link only to administrators', function () {
-        $this->actingAs(User::factory()->create())->get('/dashboard')
+        $this->actingAs(User::factory()->create())->get('/profile')
             ->assertOk()->assertDontSee(route('admin.titles.index'), false);
 
-        $this->actingAs($this->admin)->get('/dashboard')
+        $this->actingAs($this->admin)->get('/profile')
             ->assertOk()->assertSee(route('admin.titles.index'), false);
     });
 });

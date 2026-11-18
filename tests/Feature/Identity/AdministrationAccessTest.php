@@ -24,12 +24,12 @@ it('sends an administrator from /admin to the catalogue', function () {
 
 it('shows the administration link only to administrators', function () {
     $this->actingAs(User::factory()->create())
-        ->get('/dashboard')
+        ->get('/profile')
         ->assertOk()
         ->assertDontSee(route('admin.titles.index'), false);
 
     $this->actingAs(User::factory()->admin()->create())
-        ->get('/dashboard')
+        ->get('/profile')
         ->assertOk()
         ->assertSee(route('admin.titles.index'), false);
 });

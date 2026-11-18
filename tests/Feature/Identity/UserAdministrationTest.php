@@ -60,8 +60,8 @@ describe('list', function () {
     });
 
     it('is linked from the navigation, for administrators only', function () {
-        $this->actingAs($this->admin)->get('/dashboard')->assertSee(route('admin.users.index'), false);
-        $this->actingAs(User::factory()->create())->get('/dashboard')->assertDontSee(route('admin.users.index'), false);
+        $this->actingAs($this->admin)->get('/profile')->assertSee(route('admin.users.index'), false);
+        $this->actingAs(User::factory()->create())->get('/profile')->assertDontSee(route('admin.users.index'), false);
     });
 });
 
@@ -157,12 +157,12 @@ describe('suspension', function () {
     it('closes the session of an account suspended while it was signed in', function () {
         $member = User::factory()->create();
 
-        $this->actingAs($member)->get('/dashboard')->assertOk();
+        $this->actingAs($member)->get('/profile')->assertOk();
 
         $this->actingAs($this->admin)->post(route('admin.users.suspend', $member->id));
         auth()->logout();
 
-        $this->actingAs($member->fresh())->get('/dashboard')->assertRedirect('/login');
+        $this->actingAs($member->fresh())->get('/profile')->assertRedirect('/login');
         $this->assertGuest();
     });
 
@@ -193,7 +193,7 @@ describe('suspension', function () {
             auth()->forgetGuards();
             $this->flushSession();
 
-            return $this->call('GET', '/dashboard', [], [$name => $recaller]);
+            return $this->call('GET', '/profile', [], [$name => $recaller]);
         };
 
         // Le cookie seul ouvre bien une session tant que le compte est actif…

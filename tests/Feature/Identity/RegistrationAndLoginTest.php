@@ -25,7 +25,7 @@ function registrationData(array $overrides = []): array
 
 describe('registration', function () {
     it('creates a simple user, hashes the password and logs them in', function () {
-        $this->post('/register', registrationData())->assertRedirect('/dashboard');
+        $this->post('/register', registrationData())->assertRedirect('/');
 
         $user = User::query()->where('email', 'alice@example.org')->firstOrFail();
         expect($user->role)->toBe(Role::User)
@@ -46,7 +46,7 @@ describe('registration', function () {
     ]);
 
     it('stores the address in lowercase', function () {
-        $this->post('/register', registrationData(['email' => '  Alice@Example.ORG ']))->assertRedirect('/dashboard');
+        $this->post('/register', registrationData(['email' => '  Alice@Example.ORG ']))->assertRedirect('/');
 
         expect(User::query()->value('email'))->toBe('alice@example.org');
     });
@@ -72,7 +72,7 @@ describe('login and logout', function () {
     it('accepts an address typed with another case', function () {
         User::factory()->create(['email' => 'alice@example.org']);
 
-        $this->post('/login', ['email' => 'Alice@Example.org', 'password' => 'password'])->assertRedirect('/dashboard');
+        $this->post('/login', ['email' => 'Alice@Example.org', 'password' => 'password'])->assertRedirect('/');
 
         $this->assertAuthenticated();
     });

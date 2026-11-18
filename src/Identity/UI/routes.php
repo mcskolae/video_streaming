@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use HomeFlix\Identity\UI\Http\Controllers\AdminDashboardController;
 use HomeFlix\Identity\UI\Http\Controllers\UserAdminController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,7 +10,8 @@ Route::middleware(['web', 'auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::get('/', AdminDashboardController::class)->name('dashboard');
+        // `/admin` n'a pas de page propre : il mène au catalogue.
+        Route::redirect('/', '/admin/titles');
 
         Route::prefix('users')->name('users.')->controller(UserAdminController::class)->group(function () {
             Route::get('/', 'index')->name('index');

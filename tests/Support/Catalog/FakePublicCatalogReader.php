@@ -58,4 +58,11 @@ final class FakePublicCatalogReader implements PublicCatalogReader
 
         return null;
     }
+
+    public function sitemap(int $limit): array
+    {
+        $this->calls[] = ['sitemap', [$limit]];
+
+        return [];
+    }
 }

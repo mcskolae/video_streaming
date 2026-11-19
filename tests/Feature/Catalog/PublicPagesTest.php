@@ -366,7 +366,7 @@ describe('queries', function () {
         F::publishedSeries('Grande', 999, seasons: 8, episodes: 10);
 
         expect($measure())->toBe($few);
-    })->with(['/', '/genres/16', '/recherche?q=Film', '/titres/petite-2010']);
+    })->with(['/', '/genres/16', '/recherche?q=Film', '/titres/petite-2010', '/sitemap.xml']);
 });
 
 describe('public access', function () {

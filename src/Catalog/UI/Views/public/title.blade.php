@@ -8,10 +8,15 @@
     $progressByMedia = auth()->check()
         ? app(\HomeFlix\Library\Application\Query\ListTitleProgressHandler::class)->handle((string) auth()->id(), $title->slug)
         : [];
+    $posterUrl = \HomeFlix\Catalog\UI\View\PosterUrl::of($title->posterPath, 'w500');
     $hasEpisodeStream = collect($title->seasons)->flatMap(fn ($season) => $season->episodes)->contains(fn ($episode) => $episode->streamPath !== null);
 @endphp
 
-<x-catalog::public-layout :title="$title->name" :description="$title->overview !== '' ? $title->overview : $title->name">
+<x-catalog::public-layout :title="$title->name" :description="$title->overview !== '' ? $title->overview : $title->name"
+                          :image="$posterUrl" :type="$isSeries ? 'video.tv_show' : 'video.movie'">
+    {{-- Données structurées schema.org : le JSON encode < > &, il ne peut pas fermer la balise. --}}
+    <script type="application/ld+json" nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">{!! \HomeFlix\Catalog\UI\View\TitleStructuredData::json($title, route('titles.show', $title->slug)) !!}</script>
+
     @if ($movieStream !== null || $hasEpisodeStream)
         @vite('resources/js/player.js')
     @endif

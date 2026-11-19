@@ -1,4 +1,5 @@
-<x-catalog::public-layout :title="$genre->name" :description="__('Films et séries du genre :genre.', ['genre' => $genre->name])">
+<x-catalog::public-layout :title="$genre->name" :description="__('Films et séries du genre :genre.', ['genre' => $genre->name])"
+                          :canonical="$titles->currentPage() > 1 ? $titles->url($titles->currentPage()) : route('genres.show', $genre->tmdbId)">
     <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <nav aria-label="{{ __('Fil d\'Ariane') }}" class="mb-4 text-sm text-gray-500">
             <a href="{{ route('home') }}" class="hover:text-indigo-700">{{ __('Accueil') }}</a>

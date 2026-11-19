@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use HomeFlix\Catalog\UI\Http\Controllers\Admin\TitleAdminController;
 use HomeFlix\Catalog\UI\Http\Controllers\PublicCatalogController;
+use HomeFlix\Catalog\UI\Http\Controllers\SeoController;
 use Illuminate\Support\Facades\Route;
 
 // Toutes les routes d'administration passent par `auth` puis `admin`.
@@ -36,4 +37,12 @@ Route::middleware(['web', 'throttle:240,1'])
         Route::get('genres/{tmdbId}', 'genre')->where('tmdbId', '[1-9][0-9]{0,9}')->name('genres.show');
         Route::get('recherche', 'search')->name('search');
         Route::get('titres/{slug}', 'show')->where('slug', '[a-z0-9-]{1,120}')->name('titles.show');
+    });
+
+// Référencement : lus par les moteurs de recherche. robots.txt est dynamique pour donner l'adresse absolue du sitemap.
+Route::middleware(['web', 'throttle:240,1'])
+    ->controller(SeoController::class)
+    ->group(function () {
+        Route::get('sitemap.xml', 'sitemap')->name('sitemap');
+        Route::get('robots.txt', 'robots')->name('robots');
     });

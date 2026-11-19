@@ -6,6 +6,7 @@ namespace HomeFlix\Catalog\Application\Query;
 
 use HomeFlix\Catalog\Application\Port\PublicCatalogReader;
 use HomeFlix\Catalog\Application\Query\Public\PublicGenre;
+use HomeFlix\Catalog\Application\Query\Public\PublicSitemapEntry;
 use HomeFlix\Catalog\Application\Query\Public\PublicTitleCard;
 use HomeFlix\Catalog\Application\Query\Public\PublicTitleDetails;
 use HomeFlix\Catalog\Application\Query\Public\PublicTitlePage;
@@ -23,6 +24,9 @@ final readonly class PublicCatalog
     public const MAX_SEARCH_RESULTS = 48;
 
     public const MAX_TERM_LENGTH = 100;
+
+    /** Le protocole sitemap limite un fichier à 50 000 adresses ; on garde de la place pour l'accueil et les genres. */
+    public const MAX_SITEMAP_TITLES = 49_000;
 
     public function __construct(private PublicCatalogReader $reader) {}
 
@@ -64,6 +68,12 @@ final readonly class PublicCatalog
     public function show(string $slug): ?PublicTitleDetails
     {
         return $this->reader->bySlug($slug);
+    }
+
+    /** @return list<PublicSitemapEntry> */
+    public function sitemap(): array
+    {
+        return $this->reader->sitemap(self::MAX_SITEMAP_TITLES);
     }
 
     public static function normalizeTerm(string $term): string

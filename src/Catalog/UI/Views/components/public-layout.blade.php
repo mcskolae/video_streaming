@@ -1,4 +1,11 @@
-@props(['title' => null, 'description' => null])
+@props(['title' => null, 'description' => null, 'canonical' => null, 'image' => null, 'type' => 'website', 'noindex' => false])
+
+@php
+    $pageTitle = $title ? $title.' · '.config('app.name') : config('app.name');
+    $metaDescription = $description ? \Illuminate\Support\Str::limit(strip_tags($description), 160) : null;
+    // L'adresse officielle de la page, sans paramètre de requête : évite que /?utm=… compte comme une autre page.
+    $canonicalUrl = $canonical ?? url()->current();
+@endphp
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -6,10 +13,27 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ? $title.' · '.config('app.name') : config('app.name') }}</title>
-    @if ($description)
-        <meta name="description" content="{{ \Illuminate\Support\Str::limit(strip_tags($description), 160) }}">
+    <title>{{ $pageTitle }}</title>
+    @if ($metaDescription)
+        <meta name="description" content="{{ $metaDescription }}">
     @endif
+    @if ($noindex)
+        <meta name="robots" content="noindex, follow">
+    @endif
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+
+    {{-- Open Graph : l'aperçu affiché quand le lien est partagé (messageries, réseaux sociaux). --}}
+    <meta property="og:site_name" content="{{ config('app.name') }}">
+    <meta property="og:type" content="{{ $type }}">
+    <meta property="og:title" content="{{ $title ?? config('app.name') }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    @if ($metaDescription)
+        <meta property="og:description" content="{{ $metaDescription }}">
+    @endif
+    @if ($image)
+        <meta property="og:image" content="{{ $image }}">
+    @endif
+    <meta name="twitter:card" content="summary">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>

@@ -1,8 +1,9 @@
 @props(['path' => null, 'size' => 'w342', 'alt' => ''])
 
-{{-- Défense en profondeur : même si une valeur étrange arrivait en base, seul un chemin "/nom.ext" est utilisé. --}}
-@if ($path !== null && in_array($size, ['w92', 'w185', 'w342', 'w500'], true) && preg_match('#^/[A-Za-z0-9._-]{1,200}$#', $path) === 1)
-    <img src="{{ config('services.tmdb.image_base_url') }}/{{ $size }}{{ $path }}" alt="{{ $alt }}" loading="lazy" decoding="async"
+{{-- Défense en profondeur : même si une valeur étrange arrivait en base, seul un chemin "/nom.ext" est utilisé (voir PosterUrl). --}}
+@php($url = \HomeFlix\Catalog\UI\View\PosterUrl::of($path, $size))
+@if ($url !== null)
+    <img src="{{ $url }}" alt="{{ $alt }}" loading="lazy" decoding="async"
          {{ $attributes->merge(['class' => 'object-cover']) }}>
 @else
     <div role="img" aria-label="{{ $alt }}" {{ $attributes->merge(['class' => 'flex items-center justify-center bg-gray-200 text-gray-400']) }}>

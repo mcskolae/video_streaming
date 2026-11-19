@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace HomeFlix\Catalog\Infrastructure\Persistence;
 
+use DateTimeImmutable;
 use HomeFlix\Catalog\Application\Port\PublicCatalogReader;
 use HomeFlix\Catalog\Application\Query\Public\PublicEpisode;
 use HomeFlix\Catalog\Application\Query\Public\PublicGenre;
 use HomeFlix\Catalog\Application\Query\Public\PublicSeason;
+use HomeFlix\Catalog\Application\Query\Public\PublicSitemapEntry;
 use HomeFlix\Catalog\Application\Query\Public\PublicTitleCard;
 use HomeFlix\Catalog\Application\Query\Public\PublicTitleDetails;
 use HomeFlix\Catalog\Application\Query\Public\PublicTitlePage;
@@ -139,6 +141,18 @@ final class DatabasePublicCatalogReader implements PublicCatalogReader
             $type === TitleType::Series ? $this->seasons($titleId) : [],
             $this->streamPath($title->stream_path),
         );
+    }
+
+    public function sitemap(int $limit): array
+    {
+        return $this->published()
+            ->orderByDesc('titles.published_at')
+            ->orderByDesc('titles.id')
+            ->limit(max(1, $limit))
+            ->get(['titles.slug', DB::raw('COALESCE(titles.updated_at, titles.published_at) as last_modified')])
+            ->map(fn (object $row) => new PublicSitemapEntry((string) $row->slug, new DateTimeImmutable((string) $row->last_modified)))
+            ->values()
+            ->all();
     }
 
     /** @return Builder titres publiés uniquement */

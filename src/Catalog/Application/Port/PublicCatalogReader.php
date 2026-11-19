@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace HomeFlix\Catalog\Application\Port;
 
 use HomeFlix\Catalog\Application\Query\Public\PublicGenre;
+use HomeFlix\Catalog\Application\Query\Public\PublicSitemapEntry;
 use HomeFlix\Catalog\Application\Query\Public\PublicTitleCard;
 use HomeFlix\Catalog\Application\Query\Public\PublicTitleDetails;
 use HomeFlix\Catalog\Application\Query\Public\PublicTitlePage;
@@ -45,4 +46,11 @@ interface PublicCatalogReader
     public function search(string $term, int $limit): array;
 
     public function bySlug(string $slug): ?PublicTitleDetails;
+
+    /**
+     * Titres publiés pour le plan du site, les plus récemment publiés d'abord.
+     *
+     * @return list<PublicSitemapEntry>
+     */
+    public function sitemap(int $limit): array;
 }

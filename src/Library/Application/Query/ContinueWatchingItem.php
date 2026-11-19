@@ -18,6 +18,8 @@ final readonly class ContinueWatchingItem
         public ?string $episodeLabel,
         public int $positionSeconds,
         public int $durationSeconds,
+        /** Vrai si l'épisode précédent est terminé : on propose la suite, pas une reprise. */
+        public bool $isNext = false,
     ) {}
 
     public function percent(): int

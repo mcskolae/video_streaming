@@ -4,6 +4,10 @@
 
     // Le chemin du flux est déjà contrôlé par le lecteur SQL ; l'URL publique est le même chemin, sous la racine du site.
     $movieStream = $title->streamPath !== null ? '/'.$title->streamPath : null;
+    // Progression du membre connecté, par identifiant de vidéo (rien pour un visiteur).
+    $progressByMedia = auth()->check()
+        ? app(\HomeFlix\Library\Application\Query\ListTitleProgressHandler::class)->handle((string) auth()->id(), $title->slug)
+        : [];
     $hasEpisodeStream = collect($title->seasons)->flatMap(fn ($season) => $season->episodes)->contains(fn ($episode) => $episode->streamPath !== null);
 @endphp
 
@@ -37,6 +41,8 @@
                 </header>
 
                 @auth
+                    <x-library-resume-here :slug="$title->slug" />
+
                     <div class="mt-4">
                         <livewire:library.favorite-button :title-id="$title->id" :key="'favorite-'.$title->id" />
                     </div>
@@ -124,6 +130,9 @@
                                                 </p>
                                                 @if ($episode->overview !== '')
                                                     <p class="mt-0.5 text-sm text-gray-600">{{ $episode->overview }}</p>
+                                                @endif
+                                                @if ($episode->streamPath !== null)
+                                                    <x-library-episode-progress :progress="$progressByMedia[explode('/', $episode->streamPath)[1]] ?? null" />
                                                 @endif
                                             </div>
                                             @if ($episode->streamPath !== null)

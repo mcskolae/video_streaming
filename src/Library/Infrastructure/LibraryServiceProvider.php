@@ -8,6 +8,7 @@ use HomeFlix\Library\Application\Port\ContinueWatchingReader;
 use HomeFlix\Library\Application\Port\FavoritesReader;
 use HomeFlix\Library\Application\Port\MediaDirectory;
 use HomeFlix\Library\Application\Port\TitleDirectory;
+use HomeFlix\Library\Application\Port\TitleProgressReader;
 use HomeFlix\Library\Domain\Repository\FavoriteRepository;
 use HomeFlix\Library\Domain\Repository\WatchProgressRepository;
 use HomeFlix\Library\Infrastructure\Persistence\DatabaseContinueWatchingReader;
@@ -15,6 +16,7 @@ use HomeFlix\Library\Infrastructure\Persistence\DatabaseFavoriteRepository;
 use HomeFlix\Library\Infrastructure\Persistence\DatabaseFavoritesReader;
 use HomeFlix\Library\Infrastructure\Persistence\DatabaseMediaDirectory;
 use HomeFlix\Library\Infrastructure\Persistence\DatabaseTitleDirectory;
+use HomeFlix\Library\Infrastructure\Persistence\DatabaseTitleProgressReader;
 use HomeFlix\Library\Infrastructure\Persistence\DatabaseWatchProgressRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -28,5 +30,6 @@ final class LibraryServiceProvider extends ServiceProvider
         $this->app->bind(WatchProgressRepository::class, DatabaseWatchProgressRepository::class);
         $this->app->bind(MediaDirectory::class, DatabaseMediaDirectory::class);
         $this->app->bind(ContinueWatchingReader::class, DatabaseContinueWatchingReader::class);
+        $this->app->bind(TitleProgressReader::class, DatabaseTitleProgressReader::class);
     }
 }

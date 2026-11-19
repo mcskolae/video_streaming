@@ -16,4 +16,7 @@ interface ContinueWatchingReader
      * @return list<ContinueWatchingItem>
      */
     public function for(MemberId $member, int $limit): array;
+
+    /** Ce que le membre doit reprendre ou voir ensuite pour ce titre, ou null (rien de commencé, tout vu, titre non publié). */
+    public function forTitle(MemberId $member, string $slug): ?ContinueWatchingItem;
 }

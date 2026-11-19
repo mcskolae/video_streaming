@@ -11,7 +11,7 @@
                               class="mt-1 block h-1 w-full appearance-none overflow-hidden rounded [&::-webkit-progress-bar]:bg-gray-200 [&::-webkit-progress-value]:bg-indigo-600 [&::-moz-progress-bar]:bg-indigo-600"></progress>
                     <p class="mt-1 truncate text-sm font-medium group-hover:text-indigo-700">{{ $item->name }}</p>
                     @if ($item->episodeLabel !== null)
-                        <p class="truncate text-xs text-gray-500">{{ __('Épisode :label', ['label' => $item->episodeLabel]) }}</p>
+                        <p class="truncate text-xs text-gray-500">{{ $item->isNext ? __('Épisode suivant : :label', ['label' => $item->episodeLabel]) : __('Épisode :label', ['label' => $item->episodeLabel]) }}</p>
                     @endif
                 </a>
             </li>

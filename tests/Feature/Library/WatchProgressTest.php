@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use HomeFlix\Catalog\Domain\Model\Title;
 use HomeFlix\Catalog\Domain\Repository\TitleRepository;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -36,6 +37,25 @@ function libraryProgress(string $userId, string $mediaId, int $position, int $du
         'completed' => $completed,
         'updated_at' => $at ?? now(),
     ]);
+}
+
+/**
+ * Une série de deux saisons de trois épisodes, dans l'ordre 1x1 … 2x3.
+ *
+ * @return array{0: Title, 1: list<string>}
+ */
+function librarySeries(string $name = 'Sintel Chronicles', int $tmdbId = 9): array
+{
+    $series = Catalog::publishedSeries($name, $tmdbId, seasons: 2, episodes: 3);
+    app(TitleRepository::class)->save($series);
+
+    $episodes = DB::table('episodes')
+        ->join('seasons', 'seasons.id', '=', 'episodes.season_id')
+        ->where('seasons.title_id', $series->id()->value)
+        ->orderBy('seasons.number')->orderBy('episodes.number')
+        ->pluck('episodes.id')->map(fn ($id) => (string) $id)->all();
+
+    return [$series, $episodes];
 }
 
 beforeEach(function () {
@@ -226,6 +246,65 @@ describe('continue watching', function () {
             ->and($html)->toContain('Épisode 1x3');
     });
 
+    it('offers the next episode when the last one is completed', function () {
+        [, $episodes] = librarySeries();
+        $first = libraryReadyMedia('episode', $episodes[0]);
+        $second = libraryReadyMedia('episode', $episodes[1]);
+        libraryProgress($this->user->id, $first, 950, completed: true);
+
+        $html = $this->actingAs($this->user)->get('/')->assertOk()->getContent();
+
+        expect($html)->toContain('?lire='.$second)->and($html)->toContain('Épisode suivant : 1x2')
+            ->and($html)->not->toContain('?lire='.$first);
+    });
+
+    it('goes on to the next season', function () {
+        [, $episodes] = librarySeries();
+        $lastOfSeasonOne = libraryReadyMedia('episode', $episodes[2]);
+        $firstOfSeasonTwo = libraryReadyMedia('episode', $episodes[3]);
+        libraryProgress($this->user->id, $lastOfSeasonOne, 950, completed: true);
+
+        $html = $this->actingAs($this->user)->get('/')->getContent();
+
+        expect($html)->toContain('?lire='.$firstOfSeasonTwo)->and($html)->toContain('Épisode suivant : 2x1');
+    });
+
+    it('skips an episode that is not ready', function () {
+        [, $episodes] = librarySeries();
+        $first = libraryReadyMedia('episode', $episodes[0]);
+        libraryReadyMedia('episode', $episodes[1], status: 'processing');
+        $third = libraryReadyMedia('episode', $episodes[2]);
+        libraryProgress($this->user->id, $first, 950, completed: true);
+
+        $this->actingAs($this->user)->get('/')->assertSee('?lire='.$third, false)->assertSee('Épisode suivant : 1x3');
+    });
+
+    it('offers nothing after the last episode', function () {
+        [, $episodes] = librarySeries();
+        $last = libraryReadyMedia('episode', $episodes[5]);
+        libraryProgress($this->user->id, $last, 950, completed: true);
+
+        $this->actingAs($this->user)->get('/')->assertDontSee('Reprendre la lecture');
+    });
+
+    it('offers nothing when no later episode is ready', function () {
+        [, $episodes] = librarySeries();
+        $first = libraryReadyMedia('episode', $episodes[0]);
+        libraryReadyMedia('episode', $episodes[1], status: 'processing');
+        libraryProgress($this->user->id, $first, 950, completed: true);
+
+        $this->actingAs($this->user)->get('/')->assertDontSee('Reprendre la lecture');
+    });
+
+    it('does not offer the next episode from the progress of another member', function () {
+        [, $episodes] = librarySeries();
+        $first = libraryReadyMedia('episode', $episodes[0]);
+        libraryReadyMedia('episode', $episodes[1]);
+        libraryProgress(User::factory()->create()->id, $first, 950, completed: true);
+
+        $this->actingAs($this->user)->get('/')->assertDontSee('Reprendre la lecture');
+    });
+
     it('puts the most recent title first', function () {
         $other = Catalog::publishedMovie('Autre film', 7);
         $otherMedia = libraryReadyMedia('movie', $other->id()->value);
@@ -246,5 +325,52 @@ describe('the player page', function () {
 
         auth()->logout();
         $this->get($url)->assertOk()->assertDontSee('data-progress-url', false);
+    });
+});
+
+describe('progress on the title page', function () {
+    it('shows where the member is under each episode, with a resume link', function () {
+        [$series, $episodes] = librarySeries();
+        $first = libraryReadyMedia('episode', $episodes[0], 2700);
+        $second = libraryReadyMedia('episode', $episodes[1], 2700);
+        libraryReadyMedia('episode', $episodes[2], 2700);
+        libraryProgress($this->user->id, $first, 2600, 2700, completed: true, at: now()->subHour());
+        libraryProgress($this->user->id, $second, 750, 2700);
+
+        $html = $this->actingAs($this->user)->get(route('titles.show', $series->slug()->value))->assertOk()->getContent();
+
+        expect($html)->toContain('Reprendre où vous en êtes')->and($html)->toContain('Épisode 1x2')
+            ->and($html)->toContain('?lire='.$second.'#lecture')
+            ->and($html)->toContain('12 min 30 s sur 45 min')
+            ->and($html)->toContain('Vu')
+            ->and(substr_count($html, 'data-episode-progress'))->toBe(2);
+    });
+
+    it('suggests the next episode when the last one is completed', function () {
+        [$series, $episodes] = librarySeries();
+        $first = libraryReadyMedia('episode', $episodes[0]);
+        $second = libraryReadyMedia('episode', $episodes[1]);
+        libraryProgress($this->user->id, $first, 950, completed: true);
+
+        $this->actingAs($this->user)->get(route('titles.show', $series->slug()->value))
+            ->assertSee('Reprendre où vous en êtes')->assertSee('Épisode suivant : 1x2')->assertSee('Lire la suite')
+            ->assertSee('?lire='.$second, false);
+    });
+
+    it('resumes a movie at its position', function () {
+        libraryProgress($this->user->id, $this->movieMedia, 250);
+
+        $this->actingAs($this->user)->get(route('titles.show', $this->movie->slug()->value))
+            ->assertSee('Reprendre où vous en êtes')->assertSee('À 4 min 10 s');
+    });
+
+    it('shows nothing to a visitor, to a member who has not started, or about another member', function () {
+        [$series, $episodes] = librarySeries();
+        $first = libraryReadyMedia('episode', $episodes[0]);
+        libraryProgress(User::factory()->create()->id, $first, 500);
+        $url = route('titles.show', $series->slug()->value);
+
+        $this->get($url)->assertOk()->assertDontSee('Reprendre où vous en êtes')->assertDontSee('data-episode-progress', false);
+        $this->actingAs($this->user)->get($url)->assertOk()->assertDontSee('Reprendre où vous en êtes')->assertDontSee('data-episode-progress', false);
     });
 });

@@ -66,3 +66,10 @@ it('asks for a fixed number of latest titles on the home page', function () {
 
     expect($this->reader->calls)->toBe([['latest', [PublicCatalog::HOME_LATEST]]]);
 });
+
+it('keeps the sitemap under the 50 000 addresses of the protocol', function () {
+    $this->catalog->sitemap();
+
+    expect($this->reader->calls)->toBe([['sitemap', [PublicCatalog::MAX_SITEMAP_TITLES]]])
+        ->and(PublicCatalog::MAX_SITEMAP_TITLES)->toBeLessThan(50_000);
+});

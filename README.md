@@ -12,6 +12,7 @@ Architecture : DDD et hexagonale.
 | [`docs/BASE-DE-DONNEES.md`](docs/BASE-DE-DONNEES.md) | schéma entité-relation (vérifié par un test), contraintes, choix |
 | [`docs/DEPLOY.md`](docs/DEPLOY.md) | déploiement sur le serveur, déploiement continu |
 | [`docs/DEMO.md`](docs/DEMO.md) | catalogue de démonstration de films libres |
+| [`docs/SEO.md`](docs/SEO.md) | référencement : sitemap, robots.txt, balises, données structurées |
 | [`docs/SOUTENANCE.md`](docs/SOUTENANCE.md) | scénario de démonstration et défense du modèle |
 | [`docs/PLAN.md`](docs/PLAN.md) | plan initial du projet |
 

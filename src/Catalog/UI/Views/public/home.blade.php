@@ -9,6 +9,7 @@
     <div class="mx-auto max-w-7xl space-y-10 px-4 py-10 sm:px-6 lg:px-8">
         @auth
             <x-library-continue-watching />
+            <x-library-my-list />
         @endauth
 
         <section aria-labelledby="derniers-ajouts">
@@ -23,20 +24,11 @@
             @endif
         </section>
 
-        @if ($genres !== [])
-            <section aria-labelledby="parcourir-genres">
-                <h2 id="parcourir-genres" class="mb-4 text-xl font-semibold">{{ __('Parcourir par genre') }}</h2>
-                <ul class="flex flex-wrap gap-2">
-                    @foreach ($genres as $genre)
-                        <li>
-                            <a href="{{ route('genres.show', $genre->tmdbId) }}"
-                               class="inline-block rounded-full bg-white px-4 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-200 hover:bg-indigo-50 hover:text-indigo-700">
-                                {{ $genre->name }} <span class="text-gray-400">{{ $genre->titleCount }}</span>
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
+        @foreach ($genreRows as $row)
+            <section aria-labelledby="genre-{{ $row['genre']->tmdbId }}">
+                <h2 id="genre-{{ $row['genre']->tmdbId }}" class="mb-4 text-xl font-semibold">{{ $row['genre']->name }}</h2>
+                <x-catalog::title-grid :cards="$row['cards']" />
             </section>
-        @endif
+        @endforeach
     </div>
 </x-catalog::public-layout>

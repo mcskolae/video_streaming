@@ -67,8 +67,7 @@
                     <ul class="mt-4 flex flex-wrap gap-2" aria-label="{{ __('Genres') }}">
                         @foreach ($title->genres as $genre)
                             <li>
-                                <a href="{{ route('genres.show', $genre->tmdbId) }}"
-                                   class="inline-block rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100">{{ $genre->name }}</a>
+                                <span class="inline-block rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100">{{ $genre->name }}</span>
                             </li>
                         @endforeach
                     </ul>

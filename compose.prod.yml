@@ -6,8 +6,7 @@ services:
   nginx:
     build:
       context: .
-      dockerfile: docker/php/Dockerfile
-      target: web
+      dockerfile: docker/nginx/Dockerfile
     restart: unless-stopped
     environment:
       DOMAIN: ${DOMAIN:?DOMAIN manquant dans .env.prod}

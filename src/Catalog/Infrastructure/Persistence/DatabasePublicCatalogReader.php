@@ -60,7 +60,8 @@ final class DatabasePublicCatalogReader implements PublicCatalogReader
         $base = fn (): Builder => $this->published()
             ->join('title_genre', 'title_genre.title_id', '=', 'titles.id')
             ->join('genres', 'genres.id', '=', 'title_genre.genre_id')
-            ->where('genres.tmdb_id', $genreTmdbId);
+            ->where('genres.tmdb_id', $genreTmdbId)
+            ->where('title_genre.is_primary', true);
 
         return new PublicTitlePage(
             $this->cards($base()->orderByDesc('titles.published_at')->orderByDesc('titles.id')->forPage($page, $perPage)),
@@ -161,7 +162,7 @@ final class DatabasePublicCatalogReader implements PublicCatalogReader
         return DB::table('titles')->where('titles.status', 'published');
     }
 
-    /** @return Builder genres ayant au moins un titre publié, avec leur nombre de titres */
+    /** @return Builder genres ayant au moins un titre publié dont c'est le genre principal, avec le nombre de ces titres */
     private function genreQuery(): Builder
     {
         return DB::table('genres')
@@ -169,6 +170,7 @@ final class DatabasePublicCatalogReader implements PublicCatalogReader
             ->join('titles', function ($join): void {
                 $join->on('titles.id', '=', 'title_genre.title_id')->where('titles.status', '=', 'published');
             })
+            ->where('title_genre.is_primary', true)
             ->groupBy('genres.id', 'genres.tmdb_id', 'genres.name')
             ->select(['genres.tmdb_id', 'genres.name'])
             ->selectRaw('count(*) as title_count');

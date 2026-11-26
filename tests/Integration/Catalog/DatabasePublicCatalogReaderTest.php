@@ -47,6 +47,15 @@ describe('only published titles are visible', function () {
             ->and($this->reader->bySlug($title->slug()->value))->toBeNull();
     });
 
+    it('counts a title only under its main genre', function () {
+        F::publishedMovie('Big Buck Bunny', 1); // Animation puis Comédie
+
+        expect($this->reader->genre(35))->toBeNull()
+            ->and($this->reader->genre(16)?->titleCount)->toBe(1)
+            ->and($this->reader->byGenre(35, 1, 24)->total)->toBe(0)
+            ->and($this->reader->byGenre(16, 1, 24)->total)->toBe(1);
+    });
+
     it('does not count a draft in the genre totals and hides a genre with no published title', function () {
         F::publishedMovie('Publié', 1, [new Genre(16, 'Animation')]);
         F::draftMovie('Brouillon', 2); // genres Animation et Comédie, mais en brouillon
@@ -82,12 +91,12 @@ describe('latest', function () {
 });
 
 describe('genres', function () {
-    it('lists the genres alphabetically with their number of published titles', function () {
+    it('lists the genres alphabetically with the number of titles whose main genre they are', function () {
         F::publishedMovie('Un', 1, [new Genre(35, 'Comédie'), new Genre(16, 'Animation')]);
         F::publishedMovie('Deux', 2, [new Genre(16, 'Animation')]);
 
         expect(array_map(fn ($g) => [$g->tmdbId, $g->name, $g->titleCount], $this->reader->genres()))
-            ->toBe([[16, 'Animation', 2], [35, 'Comédie', 1]]);
+            ->toBe([[16, 'Animation', 1], [35, 'Comédie', 1]]);
     });
 
     it('paginates the titles of a genre, newest first', function () {

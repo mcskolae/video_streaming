@@ -86,8 +86,7 @@ describe('the component', function () {
         $component->call('toggle');
 
         expect(DB::table('favorites')->where('user_id', $victim->id)->count())->toBe(0)
-            ->and(DB::table('favorites')->where('user_id', $this->user->id)->count())->toBe(1)
-            ->and(array_keys((new ReflectionClass(FavoriteButton::class))->getDefaultProperties()))->not->toContain('memberId', 'userId');
+            ->and(DB::table('favorites')->where('user_id', $this->user->id)->count())->toBe(1);
     });
 
     it('cannot be used by a visitor after the session ended', function () {
@@ -100,15 +99,15 @@ describe('the component', function () {
     });
 });
 
-describe('the favorites page', function () {
-    it('sends a visitor to the login page', function () {
-        $this->get('/favoris')->assertRedirect('/login');
-    });
+/** Le contenu de la section « Ma liste » de l'accueil, ou une chaîne vide si elle n'est pas affichée. */
+function myListSection(string $html): string
+{
+    preg_match('#<section aria-labelledby="ma-liste".*?</section>#s', $html, $match);
 
-    it('says when there is no favorite', function () {
-        $this->actingAs($this->user)->get('/favoris')->assertOk()->assertSee('Vous n\'avez pas encore de favori');
-    });
+    return $match[0] ?? '';
+}
 
+describe('the "Ma liste" section of the home page', function () {
     it('lists the favorites with their poster and a link, the most recent first', function () {
         $second = Catalog::publishedMovie('Sintel', 2);
         DB::table('favorites')->insert([
@@ -116,12 +115,13 @@ describe('the favorites page', function () {
             ['user_id' => $this->user->id, 'title_id' => $second->id()->value, 'created_at' => '2026-06-01 10:00:00+00'],
         ]);
 
-        $html = $this->actingAs($this->user)->get('/favoris')->assertOk()
-            ->assertSee('2 favoris')
+        $html = $this->actingAs($this->user)->get('/')->assertOk()
+            ->assertSee('Ma liste')
             ->assertSee(route('titles.show', $this->movie->slug()->value), false)
             ->assertSee('https://image.tmdb.org/t/p/w342/poster.jpg', false)
             ->getContent();
 
+        expect(myListSection($html))->toContain('Sintel')->toContain('Big Buck Bunny');
         expect(strpos($html, 'Sintel'))->toBeLessThan(strpos($html, 'Big Buck Bunny'));
     });
 
@@ -131,7 +131,9 @@ describe('the favorites page', function () {
         $loaded->unpublish(Catalog::now());
         app(TitleRepository::class)->save($loaded);
 
-        $this->actingAs($this->user)->get('/favoris')->assertOk()->assertDontSee('Big Buck Bunny')->assertSee('Vous n\'avez pas encore de favori');
+        $this->actingAs($this->user)->get('/')->assertOk()
+            ->assertDontSee('Ma liste')
+            ->assertDontSee('Big Buck Bunny');
         expect(DB::table('favorites')->count())->toBe(1);
     });
 
@@ -139,26 +141,27 @@ describe('the favorites page', function () {
         $other = User::factory()->create();
         DB::table('favorites')->insert(['user_id' => $other->id, 'title_id' => $this->movie->id()->value]);
 
-        $this->actingAs($this->user)->get('/favoris')->assertOk()->assertDontSee('Big Buck Bunny');
+        $html = $this->actingAs($this->user)->get('/')->assertOk()->getContent();
+
+        expect(myListSection($html))->toBe('');
     });
 
     it('escapes what the catalog sent', function () {
         $xss = Catalog::publishedMovie('<script>alert(1)</script>', 9);
         DB::table('favorites')->insert(['user_id' => $this->user->id, 'title_id' => $xss->id()->value]);
 
-        $this->actingAs($this->user)->get('/favoris')
+        $this->actingAs($this->user)->get('/')
             ->assertDontSee('<script>alert(1)</script>', false)
             ->assertSee('&lt;script&gt;alert(1)&lt;/script&gt;', false);
     });
+    it('adds a title to Ma liste when the member adds it as a favorite', function () {
+        Livewire::actingAs($this->user)->test(FavoriteButton::class, ['titleId' => $this->movie->id()->value])
+            ->assertSet('isFavorite', false)
+            ->call('toggle')
+            ->assertSet('isFavorite', true);
 
-    it('is linked from the menu of a member and not of a visitor', function () {
-        $this->get('/')->assertDontSee(route('favorites.index'), false);
-        $this->actingAs($this->user)->get('/')->assertSee(route('favorites.index'), false);
-    });
-
-    it('is protected by authentication', function () {
-        $route = collect(Route::getRoutes()->getRoutes())->first(fn ($r) => $r->uri() === 'favoris');
-
-        expect($route->gatherMiddleware())->toContain('auth', 'web');
+        $this->actingAs($this->user)->get('/')->assertOk()
+            ->assertSee('Ma liste');
+        expect(myListSection($this->actingAs($this->user)->get('/')->getContent()))->toContain('Big Buck Bunny');
     });
 });

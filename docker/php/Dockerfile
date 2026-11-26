@@ -51,10 +51,3 @@ RUN mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cac
     && chown -R app:app storage bootstrap/cache
 USER app
 RUN php artisan package:discover --ansi
-
-# --- Cible web : Nginx avec les fichiers publics embarqués (production) ---
-FROM nginx:1.29-alpine AS web
-COPY --from=vendor /app/public /var/www/html/public
-COPY --from=assets /app/public/build /var/www/html/public/build
-COPY docker/nginx/prod.conf.template /etc/nginx/templates/default.conf.template
-COPY --chmod=755 docker/nginx/90-reload-certs.sh /docker-entrypoint.d/90-reload-certs.sh

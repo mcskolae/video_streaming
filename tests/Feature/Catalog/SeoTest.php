@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Models\User;
-use HomeFlix\Catalog\Domain\Model\Genre;
 use Tests\Support\CatalogFixtures as F;
 
 /**
@@ -19,7 +17,7 @@ function structuredData(string $html): array
 }
 
 describe('sitemap.xml', function () {
-    it('lists the home page, the genres and the published titles, never the drafts', function () {
+    it('lists the home page and the published titles, never the drafts', function () {
         F::publishedMovie('Big Buck Bunny', 1);
         F::publishedSeries('Sintel Chronicles', 2);
         F::draftMovie('Film secret', 3);
@@ -32,7 +30,6 @@ describe('sitemap.xml', function () {
         $locations = array_map('strval', $xml->xpath('//*[local-name()="loc"]'));
 
         expect($locations)->toContain(route('home'))
-            ->toContain(route('genres.show', 16))
             ->toContain(route('titles.show', 'big-buck-bunny-2008'))
             ->toContain(route('titles.show', 'sintel-chronicles-2010'))
             ->and(implode(' ', $locations))->not->toContain('film-secret');
@@ -61,7 +58,6 @@ describe('robots.txt', function () {
         expect($body)->toContain('User-agent: *')
             ->toContain('Sitemap: '.route('sitemap'))
             ->toContain('Disallow: /admin')
-            ->toContain('Disallow: /favoris')
             ->toContain('Disallow: /hls/')
             ->and(route('sitemap'))->toStartWith('http');
     });
@@ -77,20 +73,10 @@ describe('meta tags', function () {
             ->toContain('<meta property="og:title"')
             ->toContain('<meta property="og:url"')
             ->toContain('<meta property="og:site_name" content="'.config('app.name').'">');
-    })->with(['/', '/genres/16', '/titres/big-buck-bunny-2008']);
+    })->with(['/', '/titres/big-buck-bunny-2008']);
 
     it('drops the query string from the canonical address', function () {
         $this->get('/?utm_source=x')->assertSee('<link rel="canonical" href="'.url('/').'">', false);
-    });
-
-    it('keeps the page number in the canonical address of a genre page after the first', function () {
-        foreach (range(1, 30) as $i) {
-            F::publishedMovie("Film {$i}", $i, [new Genre(16, 'Animation')]);
-        }
-
-        $this->get('/genres/16')->assertSee('<link rel="canonical" href="'.route('genres.show', 16).'">', false);
-        $this->get('/genres/16?page=2')->assertSee('<link rel="canonical" href="'.route('genres.show', 16).'?page=2">', false);
-        $this->get('/genres/16?page=abc')->assertSee('<link rel="canonical" href="'.route('genres.show', 16).'">', false);
     });
 
     it('describes a movie with its poster for a shared link', function () {
@@ -108,15 +94,14 @@ describe('meta tags', function () {
         $this->get('/titres/sintel-chronicles-2010')->assertSee('<meta property="og:type" content="video.tv_show">', false);
     });
 
-    it('asks search engines not to index the search results and the favorites', function () {
+    it('asks search engines not to index the search results', function () {
         $this->get('/recherche?q=x')->assertSee('<meta name="robots" content="noindex, follow">', false);
-        $this->actingAs(User::factory()->create())->get('/favoris')->assertSee('<meta name="robots" content="noindex, follow">', false);
     });
 
     it('lets search engines index the catalog pages', function () {
         F::publishedMovie('Big Buck Bunny', 1);
 
-        foreach (['/', '/genres/16', '/titres/big-buck-bunny-2008'] as $uri) {
+        foreach (['/', '/titres/big-buck-bunny-2008'] as $uri) {
             $this->get($uri)->assertDontSee('noindex', false);
         }
     });

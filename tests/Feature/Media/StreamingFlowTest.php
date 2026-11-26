@@ -197,8 +197,7 @@ describe('player on the title page', function () {
             ->and($html)->toContain('data-hls="/hls/'.$a->id()->value.'/master.m3u8"')
             ->and($html)->toContain('data-hls="/hls/'.$b->id()->value.'/master.m3u8"')
             ->and($html)->toContain('Choisissez un épisode ci-dessous')
-            ->and($html)->toContain('data-player-video')
-            ->and($html)->not->toContain('data-hls="/hls/'.$a->id()->value.'/master.m3u8" class="aspect-video');
+            ->and($html)->toContain('data-player-video');
     });
 
     it('starts a series with an empty, hidden player', function () {

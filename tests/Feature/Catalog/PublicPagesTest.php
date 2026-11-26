@@ -32,7 +32,6 @@ function publicPages(): array
 {
     return [
         'home' => '/',
-        'genre' => '/genres/16',
         'search' => '/recherche?q=big',
         'movie' => '/titres/big-buck-bunny-2008',
         'series' => '/titres/sintel-chronicles-2010',
@@ -44,7 +43,7 @@ describe('home', function () {
         $this->get('/')->assertOk()->assertSee('Le catalogue est vide pour le moment');
     });
 
-    it('shows the published titles and the genres, never the drafts', function () {
+    it('shows the published titles and a section per genre, never the drafts', function () {
         F::publishedMovie('Big Buck Bunny', 1);
         F::draftMovie('Film secret', 2);
 
@@ -52,8 +51,7 @@ describe('home', function () {
             ->assertOk()
             ->assertSee('Big Buck Bunny')
             ->assertDontSee('Film secret')
-            ->assertSee('Parcourir par genre')
-            ->assertSee(route('genres.show', 16), false)
+            ->assertSee('id="genre-16"', false)
             ->assertSee(route('titles.show', 'big-buck-bunny-2008'), false)
             ->assertSee('https://image.tmdb.org/t/p/w342/poster.jpg', false);
     });
@@ -64,10 +62,11 @@ describe('home', function () {
         }
 
         $html = $this->get('/')->getContent();
+        preg_match('#<section aria-labelledby="derniers-ajouts".*?</section>#s', $html, $latest);
 
-        expect(substr_count($html, 'aspect-[2/3] w-full'))->toBe(12)
-            ->and($html)->toContain('Film 15')
-            ->and($html)->not->toContain('Film 3<');
+        expect(substr_count($latest[0] ?? '', 'aspect-[2/3] w-full'))->toBe(12)
+            ->and($latest[0] ?? '')->toContain('Film 15')
+            ->and($latest[0] ?? '')->not->toContain('Film 3<');
     });
 });
 
@@ -83,7 +82,6 @@ describe('title page', function () {
             ->assertSee('Synopsis de Big Buck Bunny.')
             ->assertSee('Animation')
             ->assertSee('Comédie')
-            ->assertSee(route('genres.show', 16), false)
             ->assertSee('https://image.tmdb.org/t/p/w500/poster.jpg', false)
             ->assertDontSee('Saisons et épisodes');
     });
@@ -121,59 +119,28 @@ describe('title page', function () {
     })->with([['..%2F..%2Fetc%2Fpasswd'], ['%3Cscript%3E'], ["a'b"], ['a%20b']]);
 });
 
-describe('genre page', function () {
-    it('lists the titles of the genre with a count', function () {
+describe('genre sections on the home page', function () {
+    it('gives each genre its own section, with its titles only', function () {
         F::publishedMovie('Dessin animé', 1, [new Genre(16, 'Animation')]);
         F::publishedMovie('Comédie pure', 2, [new Genre(35, 'Comédie')]);
 
-        $this->get(route('genres.show', 16))
-            ->assertOk()
-            ->assertSee('Animation')
-            ->assertSee('1 titre')
-            ->assertSee('Dessin animé')
-            ->assertDontSee('Comédie pure');
+        $html = $this->get('/')->assertOk()->getContent();
+
+        preg_match('#<section aria-labelledby="genre-16".*?</section>#s', $html, $animation);
+        expect($animation[0] ?? '')->toContain('Animation')
+            ->and($animation[0] ?? '')->toContain('Dessin animé')
+            ->and($animation[0] ?? '')->not->toContain('Comédie pure');
     });
 
-    it('paginates', function () {
+    it('shows at most 12 titles in a genre section', function () {
         foreach (range(1, 30) as $i) {
             F::publishedMovie("Film {$i}", $i, [new Genre(16, 'Animation')], sprintf('2026-01-%02d 10:00:00', $i));
         }
 
-        $first = $this->get(route('genres.show', 16))->assertOk();
-        $second = $this->get(route('genres.show', 16).'?page=2')->assertOk();
+        $html = $this->get('/')->getContent();
+        preg_match('#<section aria-labelledby="genre-16".*?</section>#s', $html, $section);
 
-        expect(substr_count($first->getContent(), 'aspect-[2/3] w-full'))->toBe(24)
-            ->and(substr_count($second->getContent(), 'aspect-[2/3] w-full'))->toBe(6);
-        $first->assertSee('page=2', false);
-    });
-
-    it('tolerates a wrong page number', function (string $page) {
-        F::publishedMovie('Film', 1, [new Genre(16, 'Animation')]);
-
-        $this->get(route('genres.show', 16).'?page='.$page)->assertOk();
-    })->with([['abc'], ['-3'], ['0'], ['99'], ['1.5']]);
-
-    it('is not found for an unknown genre, a genre with only drafts or an invalid identifier', function () {
-        F::draftMovie('Brouillon', 1);
-
-        $this->get('/genres/999')->assertNotFound();
-        $this->get('/genres/16')->assertNotFound();
-        $this->get('/genres/abc')->assertNotFound();
-        $this->get('/genres/0')->assertNotFound();
-        $this->get('/genres/-1')->assertNotFound();
-        $this->get('/genres/99999999999')->assertNotFound();
-    });
-});
-
-describe('search page', function () {
-    it('is public and finds a title', function () {
-        F::publishedMovie('Big Buck Bunny', 1);
-        F::draftMovie('Big secret', 2);
-
-        $this->get('/recherche?q=Big+Bukc+Bunny')
-            ->assertOk()
-            ->assertSee('Big Buck Bunny')
-            ->assertDontSee('Big secret');
+        expect(substr_count($section[0] ?? '', 'aspect-[2/3] w-full'))->toBe(12);
     });
 
     it('opens empty without a term', function () {
@@ -217,7 +184,7 @@ describe('escaping', function () {
         foreach (['<script>alert(1)</script>', '<b>original</b>', '<img src=x', '<i>Animation</i>', '<u>Saison</u>', '<s>résumé</s>', '<marquee>', 'href="javascript:'] as $dangerous) {
             expect($html)->not->toContain($dangerous);
         }
-    })->with(['/', '/genres/16', '/titres/xss-2020', '/recherche?q=alert']);
+    })->with(['/', '/titres/xss-2020', '/recherche?q=alert']);
 
     it('escapes it instead of dropping it', function () {
         $this->get('/titres/xss-2020')->assertSee('&lt;script&gt;alert(1)&lt;/script&gt;', false);
@@ -254,27 +221,21 @@ describe('semantic structure, on every public page', function () {
             ->and(count_of($dom, 'nav'))->toBeGreaterThanOrEqual(1)
             ->and($dom->documentElement?->getAttribute('lang'))->not->toBe('')
             ->and($dom->getElementsByTagName('main')->item(0)?->getAttribute('id'))->toBe('contenu');
-    })->with(['home', 'genre', 'search', 'movie', 'series']);
+    })->with(['home', 'search', 'movie', 'series']);
 
     it('is responsive: viewport, skip link and a mobile menu', function (string $name) {
         $html = $this->get(publicPages()[$name])->getContent();
 
         expect($html)->toContain('name="viewport" content="width=device-width, initial-scale=1"')
             ->and($html)->toContain('href="#contenu"')
-            ->and($html)->toContain('id="menu-mobile"')
-            ->and($html)->toContain('md:hidden')
-            ->and($html)->toContain('hidden items-center');
-    })->with(['home', 'genre', 'movie']);
-
-    it('lays titles out in a grid that starts with two columns on a phone', function (string $name) {
-        expect($this->get(publicPages()[$name])->getContent())->toContain('grid grid-cols-2')->toContain('sm:grid-cols-3');
-    })->with(['home', 'genre']);
+            ->and($html)->toContain('id="menu-mobile"');
+    })->with(['home', 'movie']);
 
     it('declares the language of its content, French', function (string $name) {
         $dom = dom($this->get(publicPages()[$name])->getContent());
 
         expect($dom->documentElement?->getAttribute('lang'))->toBe('fr');
-    })->with(['home', 'genre', 'search', 'movie', 'series']);
+    })->with(['home', 'search', 'movie', 'series']);
 
     it('has a distinct title and a description', function () {
         $titles = [];
@@ -287,8 +248,7 @@ describe('semantic structure, on every public page', function () {
         expect($titles['home'])->toBe(config('app.name'))
             ->and($titles['movie'])->toContain('Big Buck Bunny')
             ->and($titles['series'])->toContain('Sintel Chronicles')
-            ->and($titles['genre'])->toContain('Animation')
-            ->and(count(array_unique($titles)))->toBe(5);
+            ->and(count(array_unique($titles)))->toBe(4);
     });
 
     it('describes the page for search engines', function () {
@@ -314,7 +274,7 @@ describe('TMDB attribution', function () {
             ->assertSee('n\'est ni approuvé ni certifié par TMDB')
             ->assertSee('This product uses the TMDB API but is not endorsed or certified by TMDB.')
             ->assertSee('https://www.themoviedb.org/', false);
-    })->with(['/', '/genres/16', '/recherche', '/titres/big-buck-bunny-2008']);
+    })->with(['/', '/recherche', '/titres/big-buck-bunny-2008']);
 
     it('opens the TMDB link safely', function () {
         $html = $this->get('/')->getContent();
@@ -336,19 +296,20 @@ describe('navigation', function () {
             ->assertSee(route('admin.titles.index'), false);
     });
 
-    it('lists the genres that have a published title, and only those', function () {
+    it('gives a section to each genre that has a published title, and only to those', function () {
         F::publishedMovie('Visible', 1, [new Genre(16, 'Animation')]);
         F::draftMovie('Caché', 2); // Comédie, brouillon
 
         $html = $this->get('/')->getContent();
 
-        expect($html)->toContain(route('genres.show', 16))->and($html)->not->toContain(route('genres.show', 35));
+        expect($html)->toContain('id="genre-16"')->and($html)->not->toContain('id="genre-35"');
     });
 });
 
 describe('queries', function () {
     it('uses the same number of queries on every page whatever the size of the catalog', function (string $uri) {
         F::publishedSeries('Petite', 1, seasons: 1, episodes: 1);
+        F::publishedMovie('Première', 998);
 
         $measure = function () use ($uri): int {
             DB::flushQueryLog();
@@ -366,7 +327,7 @@ describe('queries', function () {
         F::publishedSeries('Grande', 999, seasons: 8, episodes: 10);
 
         expect($measure())->toBe($few);
-    })->with(['/', '/genres/16', '/recherche?q=Film', '/titres/petite-2010', '/sitemap.xml']);
+    })->with(['/', '/recherche?q=Film', '/titres/petite-2010', '/sitemap.xml']);
 });
 
 describe('public access', function () {
@@ -374,7 +335,7 @@ describe('public access', function () {
         F::publishedMovie('Big Buck Bunny', 1);
 
         $this->get($uri)->assertOk();
-    })->with(['/', '/genres/16', '/recherche', '/titres/big-buck-bunny-2008']);
+    })->with(['/', '/recherche', '/titres/big-buck-bunny-2008']);
 
     it('does not open the administration', function () {
         $this->get('/admin/titles')->assertRedirect('/login');

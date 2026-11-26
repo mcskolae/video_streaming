@@ -34,7 +34,6 @@ Route::middleware(['web', 'throttle:240,1'])
     ->controller(PublicCatalogController::class)
     ->group(function () {
         Route::get('/', 'home')->name('home');
-        Route::get('genres/{tmdbId}', 'genre')->where('tmdbId', '[1-9][0-9]{0,9}')->name('genres.show');
         Route::get('recherche', 'search')->name('search');
         Route::get('titres/{slug}', 'show')->where('slug', '[a-z0-9-]{1,120}')->name('titles.show');
     });

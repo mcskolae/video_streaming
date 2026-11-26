@@ -11,12 +11,12 @@ use Illuminate\Http\Response;
 final class SeoController
 {
     /** Pages que les robots n'ont pas à explorer : privées, sans contenu propre ou trop lourdes (segments vidéo). */
-    private const DISALLOW = ['/admin', '/favoris', '/profile', '/recherche', '/livewire', '/hls/'];
+    private const DISALLOW = ['/admin', '/profile', '/recherche', '/livewire', '/hls/'];
 
     public function sitemap(PublicCatalog $catalog): Response
     {
         return response()
-            ->view('catalog::sitemap', ['genres' => $catalog->genres(), 'titles' => $catalog->sitemap()])
+            ->view('catalog::sitemap', ['titles' => $catalog->sitemap()])
             ->header('Content-Type', 'application/xml; charset=UTF-8');
     }
 

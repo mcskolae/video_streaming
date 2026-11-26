@@ -15,7 +15,7 @@
                     {{ $series->status->value === 'published' ? __('Série publiée.') : __('Série en brouillon.') }}
                 </p>
                 @if ($series->status->value === 'published')
-                    <form method="POST" action="{{ route('admin.titles.unpublish', $series->id) }}">
+                    <form method="POST" action="{{ route('admin.titles.unpublish', $series->id) }}" data-confirm="{{ __('Dépublier ce titre ? Il ne sera plus visible du public.') }}">
                         @csrf
                         <button type="submit" class="text-sm font-medium text-red-700 hover:underline">{{ __('Dépublier') }}</button>
                     </form>

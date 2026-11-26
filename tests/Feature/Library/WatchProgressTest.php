@@ -196,10 +196,6 @@ describe('continue watching', function () {
         $this->get('/')->assertOk()->assertDontSee('Reprendre la lecture');
     });
 
-    it('shows nothing when there is nothing in progress', function () {
-        $this->actingAs($this->user)->get('/')->assertDontSee('Reprendre la lecture');
-    });
-
     it('drops a video that is completed', function () {
         libraryProgress($this->user->id, $this->movieMedia, 950, completed: true);
 

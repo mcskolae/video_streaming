@@ -47,24 +47,6 @@
             <div class="flex h-16 items-center justify-between gap-4">
                 <a href="{{ route('home') }}" class="text-xl font-bold tracking-tight text-indigo-700">{{ config('app.name') }}</a>
 
-                <nav aria-label="{{ __('Navigation principale') }}" class="hidden items-center gap-6 text-sm font-medium text-gray-700 md:flex">
-                    <a href="{{ route('home') }}" class="hover:text-indigo-700">{{ __('Accueil') }}</a>
-
-                    @if ($navGenres !== [])
-                        <details class="relative">
-                            <summary class="cursor-pointer list-none hover:text-indigo-700">{{ __('Genres') }}</summary>
-                            <ul class="absolute left-0 z-20 mt-2 max-h-80 w-56 overflow-y-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-gray-200">
-                                @foreach ($navGenres as $genre)
-                                    <li>
-                                        <a href="{{ route('genres.show', $genre->tmdbId) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            {{ $genre->name }} <span class="text-gray-400">({{ $genre->titleCount }})</span>
-                                        </a>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </details>
-                    @endif
-                </nav>
 
                 <form role="search" method="GET" action="{{ route('search') }}" class="hidden md:block">
                     <label for="header-search" class="sr-only">{{ __('Rechercher un titre') }}</label>
@@ -77,7 +59,6 @@
                         @can('administer')
                             <a href="{{ route('admin.titles.index') }}" class="text-gray-700 hover:text-indigo-700">{{ __('Administration') }}</a>
                         @endcan
-                        <a href="{{ route('favorites.index') }}" class="text-gray-700 hover:text-indigo-700">{{ __('Mes favoris') }}</a>
                         <a href="{{ route('profile.edit') }}" class="text-gray-700 hover:text-indigo-700">{{ __('Mon compte') }}</a>
                     @else
                         <a href="{{ route('login') }}" class="text-gray-700 hover:text-indigo-700">{{ __('Connexion') }}</a>
@@ -102,15 +83,10 @@
                     <input id="mobile-search" name="q" type="search" maxlength="100" placeholder="{{ __('Rechercher…') }}"
                            class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </form>
-                <a href="{{ route('home') }}" class="block rounded px-2 py-2 hover:bg-gray-100">{{ __('Accueil') }}</a>
-                @foreach ($navGenres as $genre)
-                    <a href="{{ route('genres.show', $genre->tmdbId) }}" class="block rounded px-2 py-2 hover:bg-gray-100">{{ $genre->name }}</a>
-                @endforeach
                 @auth
                     @can('administer')
                         <a href="{{ route('admin.titles.index') }}" class="block rounded px-2 py-2 hover:bg-gray-100">{{ __('Administration') }}</a>
                     @endcan
-                    <a href="{{ route('favorites.index') }}" class="block rounded px-2 py-2 hover:bg-gray-100">{{ __('Mes favoris') }}</a>
                     <a href="{{ route('profile.edit') }}" class="block rounded px-2 py-2 hover:bg-gray-100">{{ __('Mon compte') }}</a>
                 @else
                     <a href="{{ route('login') }}" class="block rounded px-2 py-2 hover:bg-gray-100">{{ __('Connexion') }}</a>

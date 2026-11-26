@@ -8,25 +8,25 @@ use HomeFlix\Catalog\Application\Query\PublicCatalog;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 /** Pages publiques du catalogue : accessibles sans compte, titres publiés uniquement. */
 final class PublicCatalogController
 {
+    /** Nombre de titres affichés dans la rangée d'un genre, sur l'accueil. */
+    private const GENRE_ROW_LENGTH = 12;
+
     public function home(PublicCatalog $catalog): View
     {
-        return view('catalog::public.home', ['latest' => $catalog->latest(), 'genres' => $catalog->genres()]);
-    }
+        $genreRows = [];
 
-    public function genre(int $tmdbId, Request $request, PublicCatalog $catalog): View
-    {
-        $genre = $catalog->genre($tmdbId) ?? abort(404);
-        $page = $catalog->byGenre($tmdbId, $request->integer('page', 1));
+        foreach ($catalog->genres() as $genre) {
+            $genreRows[] = [
+                'genre' => $genre,
+                'cards' => array_slice($catalog->byGenre($genre->tmdbId, 1)->cards, 0, self::GENRE_ROW_LENGTH),
+            ];
+        }
 
-        return view('catalog::public.genre', [
-            'genre' => $genre,
-            'titles' => new LengthAwarePaginator($page->cards, $page->total, $page->perPage, $page->page, ['path' => $request->url()]),
-        ]);
+        return view('catalog::public.home', ['latest' => $catalog->latest(), 'genreRows' => $genreRows]);
     }
 
     public function search(Request $request): View|RedirectResponse

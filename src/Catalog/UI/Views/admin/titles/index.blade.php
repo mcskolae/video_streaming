@@ -67,7 +67,7 @@
                                             <a href="{{ route('admin.titles.show', $title->id) }}" class="mr-3 text-sm font-medium text-gray-700 hover:underline">{{ __('Épisodes') }}</a>
                                         @endif
                                         @if ($title->status->value === 'published')
-                                            <form method="POST" action="{{ route('admin.titles.unpublish', $title->id) }}" class="inline">
+                                            <form method="POST" action="{{ route('admin.titles.unpublish', $title->id) }}" class="inline" data-confirm="{{ __('Dépublier ce titre ? Il ne sera plus visible du public.') }}">
                                                 @csrf
                                                 <button type="submit" class="text-sm font-medium text-red-700 hover:underline">{{ __('Dépublier') }}</button>
                                             </form>

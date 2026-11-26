@@ -48,7 +48,8 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-right whitespace-nowrap">
-                                    <form method="POST" action="{{ route('admin.users.role', $user->id) }}" class="inline">
+                                    <form method="POST" action="{{ route('admin.users.role', $user->id) }}" class="inline"
+                                          data-confirm="{{ $user->role->isAdministrator() ? __('Retirer le rôle administrateur de :name ?', ['name' => $user->name]) : __('Donner le rôle administrateur à :name ?', ['name' => $user->name]) }}">
                                         @csrf
                                         <input type="hidden" name="role" value="{{ $user->role->isAdministrator() ? 'user' : 'admin' }}">
                                         <button type="submit" class="mr-3 text-sm font-medium text-indigo-700 hover:underline">
@@ -61,7 +62,8 @@
                                             <button type="submit" class="text-sm font-medium text-green-700 hover:underline">{{ __('Réactiver') }}</button>
                                         </form>
                                     @else
-                                        <form method="POST" action="{{ route('admin.users.suspend', $user->id) }}" class="inline">
+                                        <form method="POST" action="{{ route('admin.users.suspend', $user->id) }}" class="inline"
+                                          data-confirm="{{ __('Suspendre :name ? Cette personne ne pourra plus se connecter.', ['name' => $user->name]) }}">
                                             @csrf
                                             <button type="submit" class="text-sm font-medium text-red-700 hover:underline">{{ __('Suspendre') }}</button>
                                         </form>

@@ -55,6 +55,7 @@ erDiagram
     title_genre {
         uuid title_id PK
         uuid genre_id PK
+        boolean is_primary
     }
     seasons {
         uuid id PK
@@ -142,7 +143,7 @@ La base refuse un état invalide même si l'application a un défaut : les règl
 | `users` | `users_email_lowercase`, `UNIQUE (email)` | une adresse, une seule graphie |
 | `users` | `role` dans (`user`, `admin`) | rôles connus |
 
-Les suppressions sont en cascade du parent vers ses dépendants (titre → saisons → épisodes → vidéo → qualités ; compte → favoris et progressions). Un genre utilisé ne peut pas être supprimé (`ON DELETE RESTRICT` sur `title_genre.genre_id`).
+Les suppressions sont en cascade du parent vers ses dépendants (titre → saisons → épisodes → vidéo → qualités ; compte → favoris et progressions). Un genre utilisé ne peut pas être supprimé (`ON DELETE RESTRICT` sur `title_genre.genre_id`). Chaque titre a au plus un genre principal (`is_primary`, index unique partiel `title_genre_one_primary`) : c'est le premier genre de la liste TMDB, et il détermine la rangée où le titre apparaît sur l'accueil.
 
 ## Choix à défendre
 

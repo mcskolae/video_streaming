@@ -73,9 +73,10 @@ final readonly class EloquentTitleRepository implements TitleRepository
     /** @param  list<Genre>  $genres */
     private function syncGenres(TitleRecord $record, array $genres): void
     {
-        $genreIds = [];
+        $pivot = [];
 
-        foreach ($genres as $genre) {
+        // Le premier genre de la liste TMDB est le genre principal : le titre n'apparaît que dans sa rangée.
+        foreach ($genres as $index => $genre) {
             $genreRecord = GenreRecord::query()->firstOrNew(['tmdb_id' => $genre->tmdbId]);
 
             if (! $genreRecord->exists) {
@@ -84,10 +85,10 @@ final readonly class EloquentTitleRepository implements TitleRepository
 
             $genreRecord->name = $genre->name;
             $genreRecord->save();
-            $genreIds[] = $genreRecord->id;
+            $pivot[$genreRecord->id] = ['is_primary' => $index === 0];
         }
 
-        $record->genres()->sync($genreIds);
+        $record->genres()->sync($pivot);
     }
 
     private function syncSeasons(Title $title): void

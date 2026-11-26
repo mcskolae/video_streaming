@@ -132,6 +132,16 @@ describe('genre sections on the home page', function () {
             ->and($animation[0] ?? '')->not->toContain('Comédie pure');
     });
 
+    it('shows a title with several genres only in its main genre', function () {
+        F::publishedMovie('Big Buck Bunny', 1); // Animation puis Comédie : Animation est le genre principal
+
+        $html = $this->get('/')->getContent();
+        preg_match('#<section aria-labelledby="genre-16".*?</section>#s', $html, $animation);
+
+        expect($animation[0] ?? '')->toContain('Big Buck Bunny')
+            ->and($html)->not->toContain('id="genre-35"');
+    });
+
     it('shows at most 12 titles in a genre section', function () {
         foreach (range(1, 30) as $i) {
             F::publishedMovie("Film {$i}", $i, [new Genre(16, 'Animation')], sprintf('2026-01-%02d 10:00:00', $i));

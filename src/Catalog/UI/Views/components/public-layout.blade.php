@@ -48,13 +48,17 @@
                 <a href="{{ route('home') }}" class="text-xl font-bold tracking-tight text-indigo-700">{{ config('app.name') }}</a>
 
 
-                <form role="search" method="GET" action="{{ route('search') }}" class="hidden md:block">
-                    <label for="header-search" class="sr-only">{{ __('Rechercher un titre') }}</label>
-                    <input id="header-search" name="q" type="search" maxlength="100" placeholder="{{ __('Rechercher…') }}"
-                           class="w-56 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </form>
 
-                <div class="hidden items-center gap-4 text-sm font-medium md:flex">
+                <div class="hidden flex-1 items-center justify-end gap-4 text-sm font-medium md:flex">
+                    <form role="search" method="GET" action="{{ route('search') }}" class="relative w-64">
+                        <label for="header-search" class="sr-only">{{ __('Rechercher un titre') }}</label>
+                        <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z" />
+                        </svg>
+                        <input id="header-search" name="q" type="search" maxlength="100" placeholder="{{ __('Rechercher…') }}"
+                               class="w-full rounded-full border-gray-300 py-1.5 pl-9 pr-4 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </form>
+                    <div class="flex items-center gap-4">
                     @auth
                         @can('administer')
                             <a href="{{ route('admin.titles.index') }}" class="text-gray-700 hover:text-indigo-700">{{ __('Administration') }}</a>
@@ -64,6 +68,7 @@
                         <a href="{{ route('login') }}" class="text-gray-700 hover:text-indigo-700">{{ __('Connexion') }}</a>
                         <a href="{{ route('register') }}" class="rounded-md bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-700">{{ __('Inscription') }}</a>
                     @endauth
+                    </div>
                 </div>
 
                 <button type="button" class="inline-flex items-center justify-center rounded-md p-2 text-gray-600 hover:bg-gray-100 md:hidden"
